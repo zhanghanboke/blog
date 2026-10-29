@@ -20,7 +20,7 @@ astro-rebuild/
 ├─ src/
 │  ├─ site.config.ts          # 站点身份 / 导航 / 功能开关（改这里最快）
 │  ├─ content.config.ts       # 内容集合 schema
-│  ├─ content/posts/          # 126 篇 Markdown，按「分类/文件名」分目录
+│  ├─ content/posts/          # 文章 Markdown，按「分类/文件名」分目录（当前为空）
 │  ├─ layouts/BaseLayout.astro
 │  ├─ components/             # Navbar / Sidebar / PostCard / Icon
 │  ├─ pages/
@@ -36,7 +36,7 @@ astro-rebuild/
 │  │   └─ search-index.json.ts
 │  ├─ styles/global.css       # 设计令牌 + 全部样式（无 UI 框架）
 │  └─ utils/posts.ts          # 排序、分类/标签聚合、链接工具
-├─ public/media/              # 从原站抽取的 108 张正文配图
+├─ public/images/             # 头像 / favicon / 横幅图
 └─ scripts/migrate.py         # 迁移脚本：静态 HTML → Markdown
 ```
 
@@ -86,7 +86,7 @@ draft: false            # true 时不出现在列表
 |---|---|---|
 | 顶栏 8 组下拉菜单 | 4 组（主页/文章/归档/关于） | 原站其余菜单对应的是相册、番剧等已清空模块 |
 | 左栏个人卡 + 日历 + 统计 | 个人卡 + 统计 + 最近更新 | 日历依赖文章日期索引，后续可加 |
-| 文章瀑布流 + 无限滚动 | 网格列表一次渲染 | 126 篇无分页压力 |
+| 文章瀑布流 + 无限滚动 | 网格列表 + 分页 | 每页 9 篇 |
 | 文章页右栏目录 | 客户端生成目录 + 滚动高亮 | 正文是原始 HTML，构建期无法抽标题 |
 | Pagefind 搜索 | 自建 JSON 索引 + 客户端过滤 | 原站索引只有 48 KB，实际不可用 |
 | Waline 评论 | 占位块 | `site.config.ts` 里 `features.comments` 打开后接入 |
