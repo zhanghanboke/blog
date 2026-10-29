@@ -66,8 +66,14 @@ const fmtTime = (d: Date) =>
                       </span>
                     </div>
                   </header>
-                  <div class="moment__body prose">
-                    <Content />
+                  <div class="moment__content">
+                    <div class="moment__body prose" data-moment-body>
+                      <Content />
+                    </div>
+                    <button class="moment__more" type="button" hidden aria-expanded="false">
+                      <span class="moment__more-label">展开全文</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
                   </div>
                   <footer class="moment__foot">
                     <span class="moment__path mono">#{entry.id.replace(/\.md$/, '')}</span>
@@ -99,6 +105,51 @@ const fmtTime = (d: Date) =>
   </div>
 
   {commentsOn && <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />}
+  <script is:inline>
+    // 长说说折叠：超过阈值就夹住高度 + 底部渐隐，点按钮展开/收起
+    (() => {
+      const LIMIT = 190; // px，大约 7~8 行
+      const setup = () => {
+        document.querySelectorAll('.moment__body[data-moment-body]').forEach((body) => {
+          const box = body.closest('.moment__content');
+          const btn = box && box.querySelector('.moment__more');
+          if (!btn) return;
+          // 已展开的不再夹回去
+          if (btn.getAttribute('aria-expanded') === 'true') {
+            body.classList.remove('is-clamped');
+            return;
+          }
+          // 量真实高度：先摘掉夹取再测，避免读到被截断的值
+          const had = body.classList.contains('is-clamped');
+          body.classList.remove('is-clamped');
+          const full = body.scrollHeight;
+          if (full > LIMIT + 40) {
+            body.classList.add('is-clamped');
+            btn.hidden = false;
+          } else {
+            if (had) body.classList.remove('is-clamped');
+            btn.hidden = true;
+          }
+        });
+      };
+      document.querySelectorAll('.moment__more').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const body = btn.closest('.moment__content').querySelector('[data-moment-body]');
+          const open = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!open));
+          body.classList.toggle('is-clamped', open);
+          btn.querySelector('.moment__more-label').textContent = open ? '展开全文' : '收起';
+        });
+      });
+      setup();
+      window.addEventListener('load', setup);
+      let t;
+      window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(setup, 150);
+      });
+    })();
+  </script>
   {
     commentsOn && (
       <script is:inline define:vars={{ serverURL, lang, login, requiredMeta }}>

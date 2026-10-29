@@ -1134,6 +1134,47 @@ body.home .icon-btn:hover {
   margin-bottom: 0;
 }
 
+/* 长说说折叠：夹住高度 + 底部渐隐，配合 .moment__more 按钮展开 */
+.moment__body.is-clamped {
+  max-height: 11.5rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.moment__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+  padding: 0.24rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--muted);
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.moment__more:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.moment__more[hidden] {
+  display: none;
+}
+
+.moment__more svg {
+  transition: transform 0.2s;
+}
+
+.moment__more[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
 .moment__foot {
   display: flex;
   align-items: center;
