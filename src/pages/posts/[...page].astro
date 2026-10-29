@@ -19,7 +19,7 @@ const tags = collectTags(all);
 const recent = toRecent(all);
 const stats = { posts: all.length, categories: categories.length, tags: tags.length };
 ---
-<BaseLayout title={page.currentPage > 1 ? `文章 · 第 ${page.currentPage} 页` : '文章'} bodyClass="page-flow">
+<BaseLayout title={page.currentPage > 1 ? `文章 · 第 ${page.currentPage} 页` : '文章'}>
   <div class="container layout">
     <Sidebar recent={recent} stats={stats} />
 

@@ -11,7 +11,7 @@ const tags = collectTags(posts);
 const recent = toRecent(posts);
 const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
 ---
-<BaseLayout title="归档" bodyClass="page-flow">
+<BaseLayout title="归档">
   <div class="container layout">
     <Sidebar recent={recent} stats={stats} />
 

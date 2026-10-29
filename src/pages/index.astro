@@ -14,7 +14,7 @@ const tags = collectTags(posts);
 const recent = toRecent(posts);
 const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
 ---
-<BaseLayout bodyClass="home page-flow">
+<BaseLayout bodyClass="home">
   <section class="hero" id="hero">
     <div class="hero__slides" aria-hidden="true">
       <img class="hero__slide is-active" src={u('/images/banner/01.webp')} alt="" fetchpriority="high" />
