@@ -4,6 +4,7 @@ date: 2026-06-12
 category: "已弃用"
 description: "介绍如何利用 GitHub Gist 作为静态博客的轻量级数据存储方案。"
 tags: ["GitHub", "Gist", "博客"]
+draft: true
 ---
 
 <section><h2 id="什么是-github-gist">什么是 GitHub Gist？</h2><p>GitHub Gist 是 GitHub 提供的一个轻量级代码和文本分享服务。每个 Gist 本质上是一个 Git 仓库，可以包含一个或多个文件，支持版本控制、克隆和 Fork。</p><p>Gist 分为两种类型：</p><ul>

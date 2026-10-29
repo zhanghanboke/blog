@@ -4,6 +4,7 @@ date: 2026-06-05
 category: "博客指南"
 description: "从零拆解博客AI摘要功能的完整实现：构建时调用千问API批量生成摘要、前端打字机动画组件、IntersectionObserver懒触发、以及标点停顿节奏控制，附全部源码。"
 tags: ["使用文档", "Astro", "AI"]
+draft: true
 ---
 
 <p>这篇文章会把我博客里「AI 摘要」功能的完整实现拆开来讲。整个功能由两部分组成：一个<strong>构建时脚本</strong>负责调用 AI 生成摘要写入文章 frontmatter，一个<strong>前端组件</strong>负责把摘要以打字机动画的形式展示给读者。</p>

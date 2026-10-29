@@ -4,6 +4,7 @@ date: 2026-08-12
 category: "技术分享"
 description: "使用 AstrBot + NapCat 部署个人微信/QQ 机器人过程中遇到的各种问题及解决方案，持续更新。"
 tags: ["AstrBot", "Docker", "NapCat", "故障排除"]
+draft: true
 ---
 
 <blockquote><p>踩坑不可怕，可怕的是同一个坑踩两遍。记录下来，下次秒查。</p></blockquote>

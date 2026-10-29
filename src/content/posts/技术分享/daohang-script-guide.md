@@ -4,6 +4,7 @@ date: 2026-07-12
 category: "技术分享"
 description: "详细介绍 add-daohang 脚本的功能、使用方式和工作原理，支持自动获取网站 ICO 图标、URL 查重、编辑模式等。"
 tags: ["脚本工具", "博客开发", "自动化"]
+draft: true
 ---
 
 <section><h2 id="前言">前言</h2><p>博客的「网站导航」页面（<code>/projects/</code>）收录了大量常用网站，每个网站都需要手动创建 Markdown 文件、填写 frontmatter、找图标链接……重复操作非常繁琐。</p><p>为了解决这个问题，我开发了 <code>add-daohang</code> 脚本，<strong>只需输入一个网址，就能自动完成所有工作</strong>。</p><hr></section>

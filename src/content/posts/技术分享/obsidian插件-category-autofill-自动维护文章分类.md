@@ -4,6 +4,7 @@ date: 2026-08-15
 category: "技术分享"
 description: "一个自动维护文章分类的 Obsidian 插件：category 自动等于所在文件夹名，新建文章自动带齐属性，只处理你指定的目录，安全可控。"
 tags: ["Obsidian", "插件", "效率工具", "博客工作流"]
+draft: true
 ---
 
 <blockquote><p>现在我在 Obsidian 里新建笔记，title、published、tags、category、description 会自动带好，写完直接同步到博客，从来不用回头补属性。</p></blockquote>

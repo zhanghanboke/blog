@@ -4,6 +4,7 @@ date: 2026-04-21
 category: "已弃用"
 description: "如何使用 Obsidian 笔记同步工具将笔记同步到博客"
 tags: ["使用文档"]
+draft: true
 ---
 
 <p>本文档介绍如何使用博客内置的同步工具，将 Obsidian 笔记库中的内容同步到博客的 <code>content</code> 文件夹。</p>

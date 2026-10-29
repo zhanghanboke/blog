@@ -4,6 +4,7 @@ date: 2026-07-13
 category: "博客指南"
 description: "记录如何使用 hexo-circle-of-friends 项目为 Astro 博客搭建朋友圈功能，包括部署、踩坑和最终效果。"
 tags: ["博客", "朋友圈", "友链", "hexo-circle-of-friends", "EdgeOne"]
+draft: true
 ---
 
 <section><h2 id="前言">前言</h2><p>博客已经有了友链页面，但只能看到朋友们的博客链接，不能看到他们最近发了什么文章。于是想找一个「朋友圈」功能，能自动抓取好友的最新文章并展示。</p><p>经过调研，发现了 <a href="https://github.com/Rock-Candy-Tea/hexo-circle-of-friends" target="_blank" rel="noopener noreferrer">hexo-circle-of-friends</a> 这个项目。虽然名字里有 “hexo”，但它实际上是一个<strong>独立的后端服务</strong>，不依赖 Hexo，任何博客框架都能用。</p></section>

@@ -4,6 +4,7 @@ date: 2026-08-07
 category: "博客指南"
 description: "免费开源静态博客后台 PagesCMS 的完整接入指南：原理、配置文件、授权连接、踩坑记录"
 tags: ["博客", "教程", "使用文档"]
+draft: true
 ---
 
 <section><h1 id="使用-pagescms-给静态博客接入后台">使用 PagesCMS 给静态博客接入后台</h1><p>静态博客（Astro / Hexo / Hugo）最大的痛点就是<strong>没有后台</strong>：发一篇文章要么本地改文件再推送，要么自己写一套后台（还要管登录、安全、维护，成本不低）。</p><p>这篇文章介绍一个<strong>零代码、零依赖</strong>的方案——<a href="https://pagescms.org/" target="_blank" rel="noopener noreferrer">PagesCMS</a>：只需要在仓库里放一个 YAML 配置文件，就能获得可视化编辑后台，手机上也能发文章。</p><!-- 📷 插图 1：PagesCMS 后台界面截图

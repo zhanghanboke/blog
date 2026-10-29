@@ -4,6 +4,7 @@ date: 2026-07-26
 category: "技术分享"
 description: "介绍如何使用Meting-API"
 tags: ["宝塔面板", "音乐", "指南"]
+draft: true
 ---
 
 <blockquote><p>多平台音乐 API 代理服务，支持网易云、QQ音乐、酷狗、百度、酷我。</p></blockquote>

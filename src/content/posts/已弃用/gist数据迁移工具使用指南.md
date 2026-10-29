@@ -4,6 +4,7 @@ date: 2026-06-30
 category: "已弃用"
 description: "将 GitHub Gist 中的外部数据（说说、友链、影视、笔记本）迁移到博客本地，避免前端重复渲染"
 tags: ["使用文档", "工具"]
+draft: true
 ---
 
 <p>博客的部分数据（说说、友链、影视、笔记本）存储在 GitHub Gist 中，通过客户端 JS 获取并渲染。当数据量增大或需要离线使用时，可以使用迁移工具将 Gist 数据转移到本地 Content Collection 中。</p>

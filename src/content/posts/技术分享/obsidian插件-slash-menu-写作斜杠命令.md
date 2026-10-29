@@ -4,6 +4,7 @@ date: 2026-08-15
 category: "技术分享"
 description: "一个写作向的 Obsidian 斜杠命令插件：输入 / 或 、 弹出命令卡片，插入标题、表格、代码块、Callout，支持拼音搜索，代码块内自动屏蔽，心流不断。"
 tags: ["Obsidian", "插件", "效率工具", "写作"]
+draft: true
 ---
 
 <blockquote><p>现在我在 Obsidian 里写文章，想插个表格就敲 <code>/table</code>，想插标题就敲 <code>/h2</code>，手从头到尾不用离开键盘。</p></blockquote>

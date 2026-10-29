@@ -5,6 +5,7 @@ category: "技术分享"
 description: "Vercel 部署的网站国内访问慢？用源站域名分离法给 Vercel 套上 EdgeOne 加速，配置详解 + 踩坑记录。"
 tags: ["CDN", "EdgeOne", "Vercel", "性能优化", "教程"]
 cover: "/media/6f1b33e67f1f.png"
+draft: true
 ---
 
 <section><h2 id="写在前面">写在前面</h2><p>Vercel 部署网站很方便，但<strong>国内访问速度一直是个老大难问题</strong>——Vercel 的节点在海外，国内用户访问动不动几秒甚至超时。</p><p>能不能给 Vercel 套一个国内 CDN（EdgeOne）加速？<strong>能</strong>，但有一个坑：<strong>Vercel 的自定义域名验证机制</strong>要求域名的 DNS 必须指向 <code>xxx.vercel.app</code>，否则拒绝服务——和 CDN 要求的”DNS 指向 CDN”冲突。</p><p>这篇文章分享我实际验证可行的方案：<strong>源站域名分离法</strong>——给 Vercel 一个”源站域名”，用户访问的域名走 EdgeOne 加速。</p><p>先看加速前后的效果对比：

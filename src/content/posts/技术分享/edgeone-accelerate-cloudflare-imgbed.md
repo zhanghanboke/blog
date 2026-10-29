@@ -4,6 +4,7 @@ date: 2026-07-31
 category: "技术分享"
 description: "完整记录使用腾讯云 EdgeOne CDN 加速 Cloudflare Pages 图床的全过程，从零开始配置，包含踩坑排查和性能测试数据。"
 tags: ["CDN", "EdgeOne", "Cloudflare", "图床", "性能优化"]
+draft: true
 ---
 
 <section><h2 id="写在前面">写在前面</h2><p>如果你和我一样，把图床部署在 Cloudflare Pages 上，国内用户访问图片总是很慢，那这篇文章就是为你写的。</p><p>我花了大半天时间摸索配置，中间踩了好几个坑，最后成功把图片加载时间从 2-8 秒降到了 0.15 秒。这篇文章把整个过程记录下来，包括我踩过的每一个坑，希望能帮你少走弯路。</p></section>

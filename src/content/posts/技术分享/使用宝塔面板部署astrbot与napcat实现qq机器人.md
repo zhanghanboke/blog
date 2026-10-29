@@ -5,6 +5,7 @@ category: "技术分享"
 description: "使用宝塔面板部署 AstrBot 与 NapCat 实现 QQ 机器人"
 tags: ["总结", "转载"]
 cover: "/media/a8ebe4facb59.webp"
+draft: true
 ---
 
 <p>此文章转载为这位大佬：<a href="https://blog.tianhw.top/posts/bt-astrbot-napcat/#%E7%99%BB%E5%BD%95-astrbot" target="_blank" rel="noopener noreferrer">THW</a>

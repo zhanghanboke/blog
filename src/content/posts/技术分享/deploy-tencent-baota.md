@@ -4,6 +4,7 @@ date: 2026-07-27
 category: "技术分享"
 description: "介绍Waline如何从 Vercel 迁移到腾讯云服务器。"
 tags: ["宝塔面板", "Waline", "教程"]
+draft: true
 ---
 
 <blockquote><p>本教程记录了将 Waline 评论系统从 Vercel 迁移到腾讯云服务器的完整过程，使用宝塔面板 + Docker 部署，基于 SQLite 数据库。</p><p>适用场景：Vercel 数据库额度用完、想自建服务、需要更灵活的配置。</p></blockquote>
