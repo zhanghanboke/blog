@@ -221,8 +221,8 @@ button {
   position: sticky;
   top: 0;
   z-index: 50;
-  padding-block: 0.7rem;
-  background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+  padding-block: 0.65rem;
+  background: transparent;
 }
 
 .nav__bar {
@@ -231,11 +231,17 @@ button {
   gap: 0.75rem;
   height: 3.1rem;
   padding-inline: 0.55rem 0.85rem;
-  background: color-mix(in srgb, var(--card) 80%, transparent);
-  border: 1px solid var(--line);
+  background: rgba(10, 10, 16, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-pill);
-  backdrop-filter: saturate(180%) blur(14px);
-  box-shadow: var(--shadow-sm);
+  backdrop-filter: saturate(180%) blur(16px);
+  box-shadow: none;
+}
+
+/* 首页有深色横幅图衬底，药丸可以做得更通透；
+   其它页面顶部是浅色内容，必须用更实的 0.72 才压得住、白字才清晰 */
+body.home .nav__bar {
+  background: rgba(10, 10, 16, 0.42);
 }
 
 .nav__brand {
@@ -246,6 +252,7 @@ button {
   font-weight: 600;
   font-size: 0.9rem;
   flex-shrink: 0;
+  color: #fff;
 }
 
 .nav__brand img {
@@ -273,24 +280,31 @@ button {
   padding: 0.4rem 0.72rem;
   border-radius: var(--radius-pill);
   font-size: 0.82rem;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
 
 .nav__link:hover {
-  color: var(--fg);
-  background: var(--line-soft);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .nav__link[aria-current='page'] {
-  color: var(--fg);
-  background: var(--card);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  color: #111;
+  background: #fff;
+  box-shadow: none;
 }
 
-html.dark .nav__link[aria-current='page'] {
-  background: #26262c;
+/* 导航内的图标按钮（搜索/主题/菜单）跟随深色玻璃底变白。
+   只限定 .nav 内部，避免影响页面其它位置的 .icon-btn */
+.nav .icon-btn {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nav .icon-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .nav__dropdown {
@@ -598,46 +612,9 @@ html.dark .nav__link[aria-current='page'] {
   border-top: 0;
 }
 
-/* 首页导航浮在横幅上 */
-body.home .nav {
-  background: transparent;
-  padding-block: 0.65rem;
-}
-
-body.home .nav__bar {
-  background: rgba(10, 10, 16, 0.42);
-  border-color: rgba(255, 255, 255, 0.16);
-  backdrop-filter: saturate(180%) blur(16px);
-  box-shadow: none;
-}
-
-body.home .nav__brand {
-  color: #fff;
-}
-
-body.home .nav__link {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-body.home .nav__link:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-body.home .nav__link[aria-current='page'] {
-  color: #111;
-  background: #fff;
-  box-shadow: none;
-}
-
-body.home .icon-btn {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-body.home .icon-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
+/* 全站导航统一用上面的标准药丸样式。
+   此前的首页专属「浮在 hero 横幅上的深色透明导航」已废弃：
+   它让首页导航和其他页面长得不一样，用户要求全站统一。 */
 
 /* ==========================================================================
    布局

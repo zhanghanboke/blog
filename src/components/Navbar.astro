@@ -1,12 +1,15 @@
 ---
 import Icon from './Icon.astro';
 import { navigation, site } from '../site.config';
-import { u } from '../utils/base';
+import { u, BASE } from '../utils/base';
 const path = Astro.url.pathname.replace(/\/+$/, '');
 // 高亮判断要拿「已加前缀」的地址和当前路径比，否则子路径部署时永远匹配不上
 const isActive = (href: string) => {
   const target = u(href).replace(/\/+$/, '');
-  return target === '' ? path === '' : path === target || path.startsWith(target + '/');
+  // 根路径必须精确匹配：子路径部署时 /blog 是所有页面的前缀，
+  // 用 startsWith 会让「主页」在每个页面都高亮
+  if (target === BASE) return path === BASE;
+  return path === target || path.startsWith(target + '/');
 };
 ---
 <header class="nav">
