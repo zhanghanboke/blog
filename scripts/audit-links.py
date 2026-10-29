@@ -4,6 +4,9 @@ from urllib.parse import unquote
 from collections import defaultdict
 
 DIST = r'E:\博客部署\astro-rebuild\dist'
+# 子路径部署时产物里的站内链接都带 base 前缀（如 /blog/posts/），
+# 但磁盘上文件仍在 dist/posts/，解析前必须先剥掉，否则全部误报 404。
+BASE = sys.argv[1].rstrip('/') if len(sys.argv) > 1 else ''
 
 broken = defaultdict(set)   # 目标 -> 引用页面集合
 external_skip = 0
@@ -15,6 +18,8 @@ attr_re = re.compile(r'(?:href|src)\s*=\s*"([^"]+)"')
 def resolve_dist(path: str):
     # 站内路径解析到 dist：目录路径 -> index.html；URL 先 percent 解码
     path = unquote(path)
+    if BASE and (path == BASE or path.startswith(BASE + '/')):
+        path = path[len(BASE):] or '/'
     if path.endswith('/'):
         return os.path.join(DIST, path.lstrip('/').replace('/', os.sep), 'index.html')
     return os.path.join(DIST, path.lstrip('/').replace('/', os.sep))
