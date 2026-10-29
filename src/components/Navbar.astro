@@ -1,14 +1,18 @@
 ---
 import Icon from './Icon.astro';
 import { navigation, site } from '../site.config';
-const path = Astro.url.pathname;
-const isActive = (href: string) =>
-  href === '/' ? path === '/' : path.startsWith(href.replace(/\/$/, ''));
+import { u } from '../utils/base';
+const path = Astro.url.pathname.replace(/\/+$/, '');
+// 高亮判断要拿「已加前缀」的地址和当前路径比，否则子路径部署时永远匹配不上
+const isActive = (href: string) => {
+  const target = u(href).replace(/\/+$/, '');
+  return target === '' ? path === '' : path === target || path.startsWith(target + '/');
+};
 ---
 <header class="nav">
   <div class="container">
   <div class="nav__bar">
-    <a class="nav__brand" href="/">
+    <a class="nav__brand" href={u('/')}>
       <img src={site.avatar} alt={site.name} width="30" height="30" />
       <span>{site.name}</span>
     </a>
@@ -17,7 +21,7 @@ const isActive = (href: string) =>
       {
         navigation.map((item) => (
           <div class="nav__item">
-            <a class="nav__link" href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+            <a class="nav__link" href={u(item.href)} aria-current={isActive(item.href) ? 'page' : undefined}>
               {item.label}
               {item.children && (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -28,7 +32,7 @@ const isActive = (href: string) =>
             {item.children && (
               <div class="nav__dropdown">
                 {item.children.map((child) => (
-                  <a href={child.href}>
+                  <a href={u(child.href)}>
                     <strong>{child.label}</strong>
                     {child.desc && <span>{child.desc}</span>}
                   </a>
@@ -41,7 +45,7 @@ const isActive = (href: string) =>
     </nav>
 
     <div class="nav__actions">
-      <a class="icon-btn" href="/search/" aria-label="搜索"><Icon name="search" /></a>
+      <a class="icon-btn" href={u('/search/')} aria-label="搜索"><Icon name="search" /></a>
       {site.features.darkMode && (
         <button class="icon-btn" id="theme-toggle" type="button" aria-label="切换主题">
           <span class="theme-icon-light"><Icon name="moon" /></span>
@@ -59,9 +63,9 @@ const isActive = (href: string) =>
       {
         navigation.map((item) => (
           <div>
-            <a class="nav__mobile-link" href={item.href}>{item.label}</a>
+            <a class="nav__mobile-link" href={u(item.href)}>{item.label}</a>
             {item.children?.map((child) => (
-              <a class="nav__mobile-sub" href={child.href}>{child.label}</a>
+              <a class="nav__mobile-sub" href={u(child.href)}>{child.label}</a>
             ))}
           </div>
         ))

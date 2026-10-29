@@ -1,4 +1,6 @@
 ---
+import { u } from '../utils/base';
+
 interface Props {
   href: string;
   title: string;
@@ -9,6 +11,7 @@ interface Props {
   cover?: string;
 }
 const { href, title, date, category, description = '', tags = [], cover } = Astro.props;
+const coverSrc = cover ? u(cover) : undefined;
 ---
 <article class="post-row">
   <div class="post-row__main">
@@ -23,7 +26,7 @@ const { href, title, date, category, description = '', tags = [], cover } = Astr
   <a href={href} aria-hidden="true" tabindex="-1">
     {
       cover ? (
-        <img class="post-row__thumb" src={cover} alt="" loading="lazy" />
+        <img class="post-row__thumb" src={coverSrc} alt="" loading="lazy" />
       ) : (
         <div class="post-row__thumb post-row__thumb--empty">
           <span>{category}</span>

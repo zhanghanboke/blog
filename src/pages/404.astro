@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../site.config';
+import { u } from '../utils/base';
 ---
 <BaseLayout title="404">
   <div class="container" style="padding-block:6rem 8rem;text-align:center">
@@ -8,8 +9,8 @@ import { site } from '../site.config';
     <h1 style="font-size:clamp(3rem,10vw,7rem);margin:.5rem 0;letter-spacing:-.05em">页面走丢了</h1>
     <p class="muted">这个地址没有对应内容，可能已经移动或删除。</p>
     <div style="display:flex;gap:.75rem;justify-content:center;margin-top:1.5rem;flex-wrap:wrap">
-      <a class="tag" style="padding:.6rem 1.1rem" href="/">返回首页</a>
-      <a class="tag" style="padding:.6rem 1.1rem" href="/posts/">浏览文章</a>
+      <a class="tag" style="padding:.6rem 1.1rem" href={u('/')}>返回首页</a>
+      <a class="tag" style="padding:.6rem 1.1rem" href={u('/posts/')}>浏览文章</a>
       <a class="tag" style="padding:.6rem 1.1rem" href={`mailto:${site.email}`}>联系站长</a>
     </div>
   </div>

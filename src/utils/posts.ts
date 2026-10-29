@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { u } from './base';
 
 export type Post = CollectionEntry<'posts'>;
 
@@ -8,7 +9,7 @@ export async function getPosts(): Promise<Post[]> {
 }
 
 export function postHref(post: Post): string {
-  return `/posts/${post.id}/`;
+  return u(`/posts/${post.id}/`);
 }
 
 export function formatDate(date: Date): string {
@@ -45,11 +46,11 @@ export function groupByYear(posts: Post[]) {
 }
 
 export function categoryHref(name: string): string {
-  return `/categories/${name.split('/').map(encodeURIComponent).join('/')}/`;
+  return u(`/categories/${name.split('/').map(encodeURIComponent).join('/')}/`);
 }
 
 export function tagHref(name: string): string {
-  return `/tags/${encodeURIComponent(name)}/`;
+  return u(`/tags/${encodeURIComponent(name)}/`);
 }
 
 export function toRecent(posts: Post[], n = 5) {

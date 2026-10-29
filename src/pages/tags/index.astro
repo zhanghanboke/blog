@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import RightSidebar from '../../components/RightSidebar.astro';
 import { getPosts, postHref, formatDate, collectCategories, collectTags, tagHref, toRecent } from '../../utils/posts';
+import { u } from '../../utils/base';
 
 const posts = await getPosts();
 const categories = collectCategories(posts);
@@ -16,7 +17,7 @@ const stats = { posts: posts.length, categories: categories.length, tags: tags.l
     <main>
       <div class="page-head">
         <div><h1>标签</h1><p>共 {tags.length} 个标签</p></div>
-        <a class="page-head__count" href="/categories/">分类 →</a>
+        <a class="page-head__count" href={u('/categories/')}>分类 →</a>
       </div>
       <div class="tag-cloud">
         {

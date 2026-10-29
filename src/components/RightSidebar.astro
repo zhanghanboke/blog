@@ -1,5 +1,6 @@
 ---
 import { site } from '../site.config';
+import { u } from '../utils/base';
 
 interface Props {
   stats: { posts: number; categories: number; tags: number };
@@ -51,7 +52,7 @@ const days = Math.max(1, Math.floor((Date.now() - new Date(site.startDate + 'T00
             <li>
               <a href={p.href}>
                 {p.cover ? (
-                  <img class="recent-thumb" src={p.cover} alt="" loading="lazy" />
+                  <img class="recent-thumb" src={u(p.cover)} alt="" loading="lazy" />
                 ) : (
                   <span class="recent-thumb recent-thumb--empty" aria-hidden="true" />
                 )}
@@ -74,7 +75,7 @@ const days = Math.max(1, Math.floor((Date.now() - new Date(site.startDate + 'T00
     <h3 class="widget__title">标签</h3>
     <div class="tag-cloud-sm">
       {tags.slice(0, 18).map((t) => (
-        <a class="tag" href={`/tags/${encodeURIComponent(t.name)}/`}>{t.name}</a>
+        <a class="tag" href={u(`/tags/${encodeURIComponent(t.name)}/`)}>{t.name}</a>
       ))}
     </div>
   </section>

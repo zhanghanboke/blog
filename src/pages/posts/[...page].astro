@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar.astro';
 import RightSidebar from '../../components/RightSidebar.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../../utils/posts';
+import { u } from '../../utils/base';
 
 export async function getStaticPaths({ paginate }: any) {
   const posts = await getPosts();
@@ -49,9 +50,10 @@ const stats = { posts: all.length, categories: categories.length, tags: tags.len
       {
         page.lastPage > 1 && (
           <nav class="pagination" aria-label="分页">
+            {/* 注意：Astro 的 paginate 已经自动给 page.url 加了 base，这里不能再套 u() */}
             {page.url.prev ? <a href={page.url.prev}>上一页</a> : <span class="is-disabled">上一页</span>}
             {Array.from({ length: page.lastPage }, (_, i) => i + 1).map((n) => {
-              const href = n === 1 ? '/posts/' : `/posts/${n}/`;
+              const href = u(n === 1 ? '/posts/' : `/posts/${n}/`);
               return n === page.currentPage ? (
                 <span class="is-current">{n}</span>
               ) : (

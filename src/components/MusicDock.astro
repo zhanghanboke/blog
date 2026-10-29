@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import { site } from '../site.config';
+import { u } from '../utils/base';
 
 const playlist = site.music.playlist;
 const first = playlist[0];
@@ -11,7 +12,7 @@ const first = playlist[0];
       <div class="dock__panel" id="dock-panel" hidden>
         <div class="dock__head">
           <div class="dock__cover-wrap">
-            <img class="dock__cover" id="dock-cover" src={first?.cover ?? '/images/banner/01.webp'} alt="" />
+            <img class="dock__cover" id="dock-cover" src={first?.cover ?? u('/images/banner/01.webp')} alt="" />
           </div>
           <div class="dock__meta">
             <p class="dock__title" id="dock-title">{first?.title ?? '暂无歌曲'}</p>

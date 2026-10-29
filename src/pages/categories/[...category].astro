@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar.astro';
 import RightSidebar from '../../components/RightSidebar.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../../utils/posts';
+import { u } from '../../utils/base';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -24,7 +25,7 @@ const stats = { posts: all.length, categories: categories.length, tags: tags.len
     <main>
       <div class="page-head">
         <div>
-          <p class="mono muted" style="margin:0 0 .35rem"><a href="/categories/">← 全部分类</a></p>
+          <p class="mono muted" style="margin:0 0 .35rem"><a href={u('/categories/')}>← 全部分类</a></p>
           <h1>{name}</h1>
           <p>{posts.length} 篇文章</p>
         </div>

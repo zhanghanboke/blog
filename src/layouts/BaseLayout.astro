@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Navbar from '../components/Navbar.astro';
 import MusicDock from '../components/MusicDock.astro';
 import { site } from '../site.config';
+import { u } from '../utils/base';
 
 interface Props {
   title?: string;
@@ -23,7 +24,7 @@ const pageTitle = title ? `${title} · ${site.title}` : site.title;
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/png" href={site.favicon} />
-    <link rel="alternate" type="application/rss+xml" title={site.title} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={site.title} href={u('/rss.xml')} />
     <script is:inline>
       (() => {
         const saved = localStorage.getItem('theme');
@@ -39,7 +40,7 @@ const pageTitle = title ? `${title} · ${site.title}` : site.title;
       <div class="container footer__inner">
         <span>© {new Date().getFullYear()} {site.name} · {site.title}</span>
         <span class="mono">
-          <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">Sitemap</a> · Powered by Astro
+          <a href={u('/rss.xml')}>RSS</a> · <a href={u('/sitemap.xml')}>Sitemap</a> · Powered by Astro
         </span>
       </div>
     </footer>

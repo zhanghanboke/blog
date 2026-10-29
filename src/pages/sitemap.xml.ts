@@ -1,19 +1,23 @@
 import type { APIRoute } from 'astro';
 import { getPosts, postHref, collectCategories, collectTags, categoryHref, tagHref } from '../utils/posts';
 import { site } from '../site.config';
+import { u } from '../utils/base';
 
 export const GET: APIRoute = async () => {
   const posts = await getPosts();
   const cats = collectCategories(posts);
   const tags = collectTags(posts);
+  // 静态路径必须过一遍 u()，否则根相对的 '/posts/' 会把 site.url 里的子路径覆盖掉
   const urls = [
-    '/',
-    '/posts/',
-    '/archive/',
-    '/categories/',
-    '/tags/',
-    '/about/',
-    '/search/',
+    u('/'),
+    u('/posts/'),
+    u('/archive/'),
+    u('/categories/'),
+    u('/tags/'),
+    u('/about/'),
+    u('/moments/'),
+    u('/changelog/'),
+    u('/search/'),
     ...cats.map((c) => categoryHref(c.name)),
     ...tags.map((t) => tagHref(t.name)),
     ...posts.map(postHref),

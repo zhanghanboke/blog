@@ -1,3 +1,5 @@
+import { u } from './utils/base';
+
 export interface NavItem {
   label: string;
   href: string;
@@ -8,12 +10,14 @@ export const site = {
   title: '张涵的博客',
   name: '张涵',
   description: '个人技术与生活分享博客',
-  url: 'https://zhanghanboke.github.io',
+  // 注意：这里是「含子路径」的完整站点地址，sitemap/RSS 会用它拼绝对链接。
+  // 如果改了 astro.config.mjs 里的 base，这里也要同步改。
+  url: 'https://zhanghanboke.github.io/blog/',
   lang: 'zh-CN',
   startDate: '2026-10-01',
-  avatar: '/images/avatar.jpg',
-  favicon: '/images/favicon.png',
-  banner: '/images/banner.svg',
+  avatar: u('/images/avatar.jpg'),
+  favicon: u('/images/favicon.png'),
+  banner: u('/images/banner.svg'),
   bio: '把知识沉淀下来，把生活记录下来。',
   email: '2832242119@qq.com',
   socials: [
@@ -33,8 +37,8 @@ export const site = {
       {
         title: '示例环境音',
         artist: 'Demo · 可替换',
-        src: '/music/demo-ambient.wav',
-        cover: '/images/banner/01.webp',
+        src: u('/music/demo-ambient.wav'),
+        cover: u('/images/banner/01.webp'),
       },
     ],
   },
