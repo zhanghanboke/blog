@@ -52,7 +52,8 @@ export const site = {
   features: {
     comments: true,
     search: true,
-    toc: true,
+    // 文章页右侧的悬浮目录。设为 true 会恢复三栏布局（目录占最右一列）
+    toc: false,
     darkMode: true,
   },
 };
