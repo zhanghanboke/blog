@@ -7,6 +7,12 @@ on:
   # 允许在 Actions 页面手动点「Run workflow」
   workflow_dispatch:
 
+# 显式声明令牌权限：仓库默认是只读，没有 pages:write 会 403 部署失败
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 # 只允许一个部署任务同时进行
 concurrency:
   group: 'pages'
