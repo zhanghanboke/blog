@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../utils/posts';
+
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title="搜索">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+    <main>
+      <div class="page-head">
+        <div><h1>搜索</h1><p>输入标题、分类或标签关键词</p></div>
+        <span class="page-head__count">Ctrl K</span>
+      </div>
+
+      <input
+        id="q"
+        class="search-input"
+        type="search"
+        placeholder="搜索文章…"
+        autocomplete="off"
+        autofocus
+      />
+      <p class="mono muted" id="hint" style="margin:.6rem 0 1rem">共 {posts.length} 篇文章</p>
+      <div id="results" class="results"></div>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .search-input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font: inherit;
+    color: var(--fg);
+    background: var(--card-bg);
+    border: 2.5px solid var(--border);
+    border-radius: 0;
+    outline: none;
+  }
+  .search-input:focus {
+    box-shadow: var(--shadow-card);
+  }
+  .results {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .results a {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--border);
+  }
+  .results a:hover {
+    background: var(--code-bg);
+  }
+  .results strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+  .results span {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+</style>
+
+<script is:inline>
+  let data = [];
+  const q = document.getElementById('q');
+  const out = document.getElementById('results');
+  const hint = document.getElementById('hint');
+
+  const render = (list) => {
+    out.innerHTML = list
+      .map(
+        (p) => `<a href="${p.href}"><strong>${p.title}</strong>
+        <span>${p.date} · ${p.category}${p.tags.length ? ' · ' + p.tags.join(' / ') : ''}</span></a>`
+      )
+      .join('');
+    hint.textContent = `找到 ${list.length} 篇`;
+  };
+
+  fetch('/search-index.json')
+    .then((r) => r.json())
+    .then((d) => {
+      data = d;
+      const kw = new URLSearchParams(location.search).get('q') || '';
+      if (kw) q.value = kw;
+      render(kw ? data.filter((p) => (p.title + p.category + p.tags.join('')).toLowerCase().includes(kw.toLowerCase())) : data.slice(0, 10));
+    });
+
+  q.addEventListener('input', () => {
+    const kw = q.value.trim().toLowerCase();
+    if (!kw) return render(data.slice(0, 10));
+    render(
+      data.filter((p) => (p.title + p.category + p.tags.join('') + p.excerpt).toLowerCase().includes(kw))
+    );
+  });
+
+  addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      q.focus();
+    }
+  });
+</script>

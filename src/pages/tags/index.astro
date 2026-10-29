@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, tagHref, toRecent } from '../../utils/posts';
+
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title="标签" bodyClass="page-flow">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+    <main>
+      <div class="page-head">
+        <div><h1>标签</h1><p>共 {tags.length} 个标签</p></div>
+        <a class="page-head__count" href="/categories/">分类 →</a>
+      </div>
+      <div class="tag-cloud">
+        {
+          tags.map((t) => (
+            <a class="tag" href={`${tagHref(t.name)}`} style={`font-size:${Math.min(1.1, 0.72 + t.count * 0.04)}rem`}>
+              {t.name} <span class="muted">{t.count}</span>
+            </a>
+          ))
+        }
+      </div>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>
+
+<style>
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border: 2.5px solid var(--border);
+  }
+</style>

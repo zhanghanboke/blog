@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import { getPosts, postHref, formatDate, groupByYear, collectCategories, collectTags, toRecent } from '../utils/posts';
+
+const posts = await getPosts();
+const years = groupByYear(posts);
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title="归档" bodyClass="page-flow">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+
+    <main>
+      <div class="page-head">
+        <div><h1>归档</h1><p>{posts.length} 篇文章，按年份排列</p></div>
+        <span class="page-head__count">{years.length} YEARS</span>
+      </div>
+
+      {
+        years.map(([year, list]) => (
+          <section class="archive-year">
+            <h2>{year} <span class="muted mono">({list.length})</span></h2>
+            <ul class="archive-list">
+              {list.map((p) => (
+                <li>
+                  <a href={postHref(p)}>
+                    <time>{formatDate(p.data.date)}</time>
+                    <span>{p.data.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>

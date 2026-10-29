@@ -1,0 +1,34 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  date: string;
+  category: string;
+  description?: string;
+  tags?: string[];
+  cover?: string;
+}
+const { href, title, date, category, description = '', tags = [], cover } = Astro.props;
+---
+<article class="post-row">
+  <div class="post-row__main">
+    <h2 class="post-row__title"><a href={href}>{title}</a></h2>
+    <div class="post-row__meta">
+      <span class="chip">{category}</span>
+      <span>{date}</span>
+      {tags.length > 0 && <span>· {tags.slice(0, 3).join(' / ')}</span>}
+    </div>
+    {description && <p class="post-row__desc">{description}</p>}
+  </div>
+  <a href={href} aria-hidden="true" tabindex="-1">
+    {
+      cover ? (
+        <img class="post-row__thumb" src={cover} alt="" loading="lazy" />
+      ) : (
+        <div class="post-row__thumb post-row__thumb--empty">
+          <span>{category}</span>
+        </div>
+      )
+    }
+  </a>
+</article>

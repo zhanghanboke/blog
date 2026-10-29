@@ -1,0 +1,93 @@
+---
+import '../styles/global.css';
+import Navbar from '../components/Navbar.astro';
+import MusicDock from '../components/MusicDock.astro';
+import { site } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+}
+const { title, description = site.description, bodyClass = '' } = Astro.props;
+const pageTitle = title ? `${title} · ${site.title}` : site.title;
+---
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href={site.favicon} />
+    <link rel="alternate" type="application/rss+xml" title={site.title} href="/rss.xml" />
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem('theme');
+        const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
+  </head>
+  <body class={bodyClass}>
+    <Navbar />
+    <slot />
+    <footer class="footer">
+      <div class="container footer__inner">
+        <span>© {new Date().getFullYear()} {site.name} · {site.title}</span>
+        <span class="mono">
+          <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">Sitemap</a> · Powered by Astro
+        </span>
+      </div>
+    </footer>
+    <MusicDock />
+    <script is:inline>
+      // 标签页切换时的标题挽留（复刻源站：离开显示挽留语，回来恢复）
+      (() => {
+        const HOME_TITLE = document.title;
+        document.addEventListener('visibilitychange', () => {
+          document.title = document.hidden ? "w('A')w不要走再看看嘛！" : HOME_TITLE;
+        });
+      })();
+    </script>
+    <script is:inline>
+      // 侧栏滚动模式（复刻源站 checkSidebarMode，并加高侧栏修正）：
+      // 1. 文章页顶吸（bodyClass="page-posts" 控制）
+      // 2. 标记了 page-flow 的页面（主页/归档/分类等长页）保持自然滚动，
+      //    不做吸附——这类页面底吸会长时间定格在「两端被裁」的状态
+      // 3. 其余长页（主内容超过视口）底吸：JS 加 .is-long → 吸附视口底部
+      // 4. 侧栏自身高于视口时（is-tall）：纯底吸会永久裁掉顶部内容，
+      //    改为 top 偏移粘滞——先随页面自然滚完，底边触到视口底后再钉住
+      //    --pin-top 用 ResizeObserver 随卡片高度变化实时修正
+      (() => {
+        const check = () => {
+          const main = document.querySelector('.layout > main');
+          if (!main) return;
+          const isPosts = document.body.classList.contains('page-posts');
+          const isFlow = document.body.classList.contains('page-flow');
+          const isLong = !isPosts && !isFlow && main.scrollHeight > window.innerHeight;
+          document.querySelectorAll('.layout > .sidebar, .layout > .rightbar').forEach((el) => {
+            el.classList.toggle('is-long', isLong);
+            const tall = isLong && el.offsetHeight > window.innerHeight;
+            el.classList.toggle('is-tall', tall);
+            if (tall) {
+              el.style.setProperty('--pin-top', (window.innerHeight - el.offsetHeight) + 'px');
+            } else {
+              el.style.removeProperty('--pin-top');
+            }
+          });
+        };
+        check();
+        window.addEventListener('resize', check);
+        window.addEventListener('load', check);
+        if (window.ResizeObserver) {
+          const ro = new ResizeObserver(() => check());
+          document.querySelectorAll('.layout > .sidebar, .layout > .rightbar').forEach((el) => ro.observe(el));
+        }
+      })();
+    </script>
+</body>
+</html>

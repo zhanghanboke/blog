@@ -1,0 +1,263 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../site.config';
+
+const playlist = site.music.playlist;
+const first = playlist[0];
+---
+{
+  site.music.enabled && (
+    <div class="dock" id="dock" data-count={playlist.length}>
+      <div class="dock__panel" id="dock-panel" hidden>
+        <div class="dock__head">
+          <div class="dock__cover-wrap">
+            <img class="dock__cover" id="dock-cover" src={first?.cover ?? '/images/banner/01.webp'} alt="" />
+          </div>
+          <div class="dock__meta">
+            <p class="dock__title" id="dock-title">{first?.title ?? '暂无歌曲'}</p>
+            <p class="dock__artist" id="dock-artist">{first?.artist ?? '把音频放进 public/music'}</p>
+          </div>
+          <button class="dock__mini" id="dock-list-toggle" type="button" aria-label="播放列表" title="播放列表">
+            <Icon name="list" size={16} />
+          </button>
+        </div>
+
+        <div class="dock__meta-row">
+          <span class="dock__time" id="dock-time">0:00 / 0:00</span>
+          <div class="dock__vol">
+            <button class="dock__vol-btn" id="dock-mute" type="button" aria-label="静音" title="静音">
+              <Icon name="volume" size={15} />
+            </button>
+            <div class="dock__vol-track" id="dock-vol" role="slider" aria-label="音量" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+              <i id="dock-vol-fill" style="width:70%"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock__progress" id="dock-progress" role="slider" aria-label="播放进度" tabindex="0">
+          <div class="dock__track"><i id="dock-fill" /></div>
+          <span class="dock__thumb" id="dock-thumb" />
+        </div>
+
+        <div class="dock__controls">
+          <button class="dock__ctrl" id="dock-repeat" type="button" aria-label="循环模式" title="列表循环">
+            <span id="dock-repeat-icon"><Icon name="repeat" size={16} /></span>
+          </button>
+          <button class="dock__ctrl" id="dock-prev" type="button" aria-label="上一首"><Icon name="prev" size={16} /></button>
+          <button class="dock__ctrl dock__ctrl--main" id="dock-play" type="button" aria-label="播放">
+            <span id="dock-play-icon"><Icon name="play" size={18} /></span>
+          </button>
+          <button class="dock__ctrl" id="dock-next" type="button" aria-label="下一首"><Icon name="next" size={16} /></button>
+          <button class="dock__ctrl" id="dock-playlist-btn" type="button" aria-label="播放列表" title="播放列表">
+            <Icon name="list" size={16} />
+          </button>
+        </div>
+
+        <ul class="dock__list" id="dock-list" hidden></ul>
+
+        <audio id="dock-audio" preload="none"></audio>
+      </div>
+
+      <div class="dock__rail">
+        <button class="dock-btn" id="dock-toggle" type="button" aria-label="音乐" data-label="音乐"><Icon name="music" size={17} /></button>
+        <button class="dock-btn" id="dock-theme" type="button" aria-label="主题" data-label="主题">
+          <span class="dock-theme-light"><Icon name="moon" size={17} /></span>
+          <span class="dock-theme-dark" hidden><Icon name="sun" size={17} /></span>
+        </button>
+        <button class="dock-btn" id="dock-close" type="button" aria-label="收起" data-label="收起"><Icon name="close" size={17} /></button>
+      </div>
+    </div>
+  )
+}
+
+<script type="module" is:inline define:vars={{ playlist }}>
+  (() => {
+    const dock = document.getElementById('dock');
+    if (!dock) return;
+    // 旧版本会把整个播放器永久隐藏，这里清掉这个状态
+    localStorage.removeItem('dockHidden');
+
+    const $ = (id) => document.getElementById(id);
+    const panel = $('dock-panel');
+    const audio = $('dock-audio');
+    const cover = $('dock-cover');
+    const titleEl = $('dock-title');
+    const artistEl = $('dock-artist');
+    const fill = $('dock-fill');
+    const thumb = $('dock-thumb');
+    const timeEl = $('dock-time');
+    const playBtn = $('dock-play');
+    const playIcon = $('dock-play-icon');
+    const progress = $('dock-progress');
+    const listEl = $('dock-list');
+    const repeatBtn = $('dock-repeat');
+
+    const songs = Array.isArray(playlist) ? playlist : [];
+    let i = 0;
+    let playing = false;
+    let repeatOne = false;
+    let volume = Number(localStorage.getItem('dockVolume') ?? 0.7);
+
+    const ICON = {
+      play: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>',
+      pause: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="8" y="5" width="3" height="14" rx="1"/><rect x="14" y="5" width="3" height="14" rx="1"/></svg>',
+      repeat: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>',
+      repeatOne: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>',
+    };
+
+    const fmt = (s) => {
+      if (!Number.isFinite(s)) return '0:00';
+      return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    };
+
+    const render = () => {
+      const s = songs[i];
+      if (!s) {
+        titleEl.textContent = '暂无歌曲';
+        artistEl.textContent = '把音频放进 public/music 并配置 site.config.ts';
+        return;
+      }
+      titleEl.textContent = s.title;
+      artistEl.textContent = s.artist || '';
+      cover.src = s.cover || cover.src;
+      audio.src = s.src;
+      audio.volume = volume;
+      audio.load();
+      timeEl.textContent = '0:00 / 0:00';
+      fill.style.width = '0%';
+      thumb.style.left = '0%';
+      if (listEl) {
+        listEl.innerHTML = songs
+          .map(
+            (x, k) =>
+              `<li class="${k === i ? 'is-current' : ''}" data-k="${k}"><span>${x.title}</span><small>${x.artist || ''}</small></li>`
+          )
+          .join('');
+      }
+    };
+
+    const setPlaying = (v) => {
+      playing = v;
+      playIcon.innerHTML = v ? ICON.pause : ICON.play;
+      playBtn.setAttribute('aria-label', v ? '暂停' : '播放');
+      cover.style.animationPlayState = v ? 'running' : 'paused';
+    };
+
+    const toggle = async () => {
+      if (!songs.length) return;
+      if (audio.paused) {
+        try {
+          await audio.play();
+          setPlaying(true);
+        } catch {}
+      } else {
+        audio.pause();
+        setPlaying(false);
+      }
+    };
+
+    const go = (delta, auto = false) => {
+      if (!songs.length) return;
+      if (auto && repeatOne) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+        return;
+      }
+      i = (i + delta + songs.length) % songs.length;
+      render();
+      if (playing || auto) audio.play().then(() => setPlaying(true)).catch(() => {});
+    };
+
+    playBtn?.addEventListener('click', toggle);
+    $('dock-next')?.addEventListener('click', () => go(1));
+    $('dock-prev')?.addEventListener('click', () => go(-1));
+
+    audio?.addEventListener('timeupdate', () => {
+      const d = audio.duration || 0;
+      const p = d ? (audio.currentTime / d) * 100 : 0;
+      fill.style.width = `${p}%`;
+      thumb.style.left = `${p}%`;
+      timeEl.textContent = `${fmt(audio.currentTime)} / ${fmt(d)}`;
+    });
+    audio?.addEventListener('ended', () => go(1, true));
+
+    progress?.addEventListener('click', (e) => {
+      if (!audio.duration) return;
+      const r = progress.getBoundingClientRect();
+      audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+    });
+
+    repeatBtn?.addEventListener('click', () => {
+      repeatOne = !repeatOne;
+      $('dock-repeat-icon').innerHTML = repeatOne ? ICON.repeatOne : ICON.repeat;
+      repeatBtn.classList.toggle('is-on', repeatOne);
+      repeatBtn.title = repeatOne ? '单曲循环' : '列表循环';
+    });
+
+    const volTrack = $('dock-vol');
+    const volFill = $('dock-vol-fill');
+    const setVolume = (v) => {
+      volume = Math.min(1, Math.max(0, v));
+      audio.volume = volume;
+      volFill.style.width = `${volume * 100}%`;
+      volTrack.setAttribute('aria-valuenow', String(Math.round(volume * 100)));
+      localStorage.setItem('dockVolume', String(volume));
+    };
+    volTrack?.addEventListener('click', (e) => {
+      const r = volTrack.getBoundingClientRect();
+      setVolume((e.clientX - r.left) / r.width);
+    });
+    $('dock-mute')?.addEventListener('click', () => setVolume(volume > 0 ? 0 : 0.7));
+
+    const toggleList = () => {
+      if (!listEl) return;
+      listEl.hidden = !listEl.hidden;
+    };
+    $('dock-list-toggle')?.addEventListener('click', toggleList);
+    $('dock-playlist-btn')?.addEventListener('click', toggleList);
+    listEl?.addEventListener('click', (e) => {
+      const li = e.target.closest('li[data-k]');
+      if (!li) return;
+      i = Number(li.dataset.k);
+      render();
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    });
+
+    $('dock-toggle')?.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      localStorage.setItem('dockOpen', panel.hidden ? '0' : '1');
+      if (!panel.hidden && !audio.src && songs.length) render();
+    });
+
+    $('dock-close')?.addEventListener('click', () => {
+      panel.hidden = true;
+      localStorage.setItem('dockOpen', '0');
+    });
+
+    const themeBtn = $('dock-theme');
+    const syncTheme = () => {
+      const dark = document.documentElement.classList.contains('dark');
+      themeBtn.querySelector('.dock-theme-light').hidden = dark;
+      themeBtn.querySelector('.dock-theme-dark').hidden = !dark;
+    };
+    themeBtn?.addEventListener('click', () => {
+      const dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      syncTheme();
+    });
+    syncTheme();
+
+    render();
+    setVolume(volume);
+    // 面板状态：尊重用户上次的选择；仅桌面端首次访问自动展开一次，
+    // 之后记住用户开合（收起态只留圆形按钮，不会遮挡侧栏内容）
+    const savedOpen = localStorage.getItem('dockOpen');
+    if (savedOpen === '1') {
+      panel.hidden = false;
+    } else if (savedOpen === null && innerWidth > 1023) {
+      panel.hidden = false;
+      localStorage.setItem('dockOpen', '1');
+    }
+  })();
+</script>

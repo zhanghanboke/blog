@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../../utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return collectCategories(posts).map((c) => ({ params: { category: c.name }, props: { name: c.name } }));
+}
+
+const { name } = Astro.props;
+const all = await getPosts();
+const posts = all.filter((p) => p.data.category === name);
+const categories = collectCategories(all);
+const tags = collectTags(all);
+const recent = toRecent(all);
+const stats = { posts: all.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title={`分类 · ${name}`} bodyClass="page-flow">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+    <main>
+      <div class="page-head">
+        <div>
+          <p class="mono muted" style="margin:0 0 .35rem"><a href="/categories/">← 全部分类</a></p>
+          <h1>{name}</h1>
+          <p>{posts.length} 篇文章</p>
+        </div>
+      </div>
+      <div class="post-list">
+        {
+          posts.map((p) => (
+            <PostCard
+              href={postHref(p)}
+              title={p.data.title}
+              date={formatDate(p.data.date)}
+              category={p.data.category}
+              description={p.data.description}
+              tags={p.data.tags}
+              cover={p.data.cover}
+            />
+          ))
+        }
+      </div>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>

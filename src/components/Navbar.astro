@@ -1,0 +1,146 @@
+---
+import Icon from './Icon.astro';
+import { navigation, site } from '../site.config';
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href.replace(/\/$/, ''));
+---
+<header class="nav">
+  <div class="container">
+  <div class="nav__bar">
+    <a class="nav__brand" href="/">
+      <img src={site.avatar} alt={site.name} width="30" height="30" />
+      <span>{site.name}</span>
+    </a>
+
+    <nav class="nav__links" aria-label="主导航">
+      {
+        navigation.map((item) => (
+          <div class="nav__item">
+            <a class="nav__link" href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+              {item.label}
+              {item.children && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              )}
+            </a>
+            {item.children && (
+              <div class="nav__dropdown">
+                {item.children.map((child) => (
+                  <a href={child.href}>
+                    <strong>{child.label}</strong>
+                    {child.desc && <span>{child.desc}</span>}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </nav>
+
+    <div class="nav__actions">
+      <a class="icon-btn" href="/search/" aria-label="搜索"><Icon name="search" /></a>
+      {site.features.darkMode && (
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="切换主题">
+          <span class="theme-icon-light"><Icon name="moon" /></span>
+          <span class="theme-icon-dark" hidden><Icon name="sun" /></span>
+        </button>
+      )}
+      <button class="icon-btn nav__toggle" id="nav-toggle" type="button" aria-label="打开菜单" aria-expanded="false">
+        <Icon name="menu" />
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__mobile" id="nav-mobile" hidden>
+    <div>
+      {
+        navigation.map((item) => (
+          <div>
+            <a class="nav__mobile-link" href={item.href}>{item.label}</a>
+            {item.children?.map((child) => (
+              <a class="nav__mobile-sub" href={child.href}>{child.label}</a>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  </div>
+</header>
+
+<style>
+  .theme-icon-dark[hidden] {
+    display: none;
+  }
+  .nav__mobile {
+    border-top: 2px solid var(--border);
+    padding-block: 0.75rem 1rem;
+  }
+  .nav__mobile-link {
+    display: block;
+    padding: 0.5rem 0.25rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .nav__mobile-sub {
+    display: block;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>
+
+<script is:inline>
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+  const applyTheme = (dark) => {
+    root.classList.toggle('dark', dark);
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    if (toggle) {
+      toggle.querySelector('.theme-icon-light').hidden = dark;
+      toggle.querySelector('.theme-icon-dark').hidden = !dark;
+    }
+  };
+  applyTheme(localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && matchMedia('(prefers-color-scheme: dark)').matches));
+  toggle?.addEventListener('click', () => applyTheme(!root.classList.contains('dark')));
+
+  const __navDropdown = (() => {
+    const items = [...document.querySelectorAll('.nav__item')].filter((i) => i.querySelector('.nav__dropdown'));
+    const closeAll = (except) => items.forEach((i) => {
+      if (i === except) return;
+      i.classList.remove('is-open');
+      i.querySelector('.nav__link')?.setAttribute('aria-expanded', 'false');
+    });
+    items.forEach((item) => {
+      const trigger = item.querySelector('.nav__link');
+      trigger.setAttribute('aria-haspopup', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      item.addEventListener('mouseenter', () => closeAll(item));
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const open = !item.classList.contains('is-open');
+        closeAll(item);
+        item.classList.toggle('is-open', open);
+        trigger.setAttribute('aria-expanded', String(open));
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.nav__item')) closeAll();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAll();
+    });
+    return true;
+  })();
+
+  const navToggle = document.getElementById('nav-toggle');
+  const mobile = document.getElementById('nav-mobile');
+  navToggle?.addEventListener('click', () => {
+    const open = mobile.hidden;
+    mobile.hidden = !open;
+    navToggle.setAttribute('aria-expanded', String(open));
+  });
+</script>

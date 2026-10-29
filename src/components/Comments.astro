@@ -1,0 +1,38 @@
+---
+import { site } from '../site.config';
+
+const { serverURL, lang, login, requiredMeta } = site.comments;
+const enabled = site.features.comments && serverURL;
+---
+<section class="comments" id="comments">
+  <h2 class="section-title">评论 <span class="muted">COMMENTS</span></h2>
+
+  {
+    enabled ? (
+      <>
+        <div id="waline" class="comments__box" />
+        <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
+        <script type="module" is:inline define:vars={{ serverURL, lang, login, requiredMeta }}>
+          import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
+          init({
+            el: '#waline',
+            serverURL,
+            lang,
+            login,
+            requiredMeta,
+            dark: 'html.dark',
+            reaction: false,
+          });
+        </script>
+      </>
+    ) : (
+      <div class="empty">
+        <strong>评论暂未开启</strong>
+        <span>
+          在 <code>src/site.config.ts</code> 中把 <code>comments.serverURL</code> 填成你的 Waline 地址、
+          并把 <code>features.comments</code> 设为 <code>true</code> 即可启用
+        </span>
+      </div>
+    )
+  }
+</section>

@@ -1,0 +1,81 @@
+---
+import { site } from '../site.config';
+
+interface Props {
+  stats: { posts: number; categories: number; tags: number };
+  recent: { title: string; href: string; date: string; cover?: string; category?: string }[];
+  tags: { name: string; count: number }[];
+}
+const { stats, recent, tags } = Astro.props;
+
+const quotes = [
+  ['不要等待机会，而要创造机会。', '林肯'],
+  ['把每一件简单的事做好，就是不简单。', '张瑞敏'],
+  ['慢慢来，比较快。', '佚名'],
+  ['所有的问题，都是认知的问题。', '佚名'],
+  ['写下来，才算真正想清楚。', '佚名'],
+  ['不要因为走得太远，忘记为什么出发。', '纪伯伦'],
+  ['生活的理想，就是为了理想的生活。', '张闻天'],
+  ['与其感慨路难行，不如马上出发。', '佚名'],
+  ['持续做难而正确的事。', '佚名'],
+  ['今天的你，是过去所有选择的总和。', '佚名'],
+];
+const dayIndex = Math.floor(Date.now() / 86400000) % quotes.length;
+const [quote, author] = quotes[dayIndex];
+
+const days = Math.max(1, Math.floor((Date.now() - new Date(site.startDate + 'T00:00:00').getTime()) / 86400000) + 1);
+---
+<aside class="rightbar">
+  <section class="card widget">
+    <h3 class="widget__title">今日一言</h3>
+    <blockquote class="quote">“{quote}”</blockquote>
+    <p class="quote__author">—— {author}</p>
+  </section>
+
+  <section class="card widget">
+    <h3 class="widget__title">站点统计</h3>
+    <div class="stat-row"><span>文章</span><b>{stats.posts}</b></div>
+    <div class="stat-row"><span>分类</span><b>{stats.categories}</b></div>
+    <div class="stat-row"><span>标签</span><b>{stats.tags}</b></div>
+    <div class="stat-row"><span>运行</span><b id="uptime-days" data-since={site.startDate}>{days} 天</b></div>
+  </section>
+
+  <section class="card widget">
+    <h3 class="widget__title">最近更新</h3>
+    {
+      recent.length === 0 ? (
+        <p class="muted" style="font-size:.8rem;margin:0">还没有文章</p>
+      ) : (
+        <ul class="recent-list">
+          {recent.map((p) => (
+            <li>
+              <a href={p.href}>
+                {p.cover ? (
+                  <img class="recent-thumb" src={p.cover} alt="" loading="lazy" />
+                ) : (
+                  <span class="recent-thumb recent-thumb--empty" aria-hidden="true" />
+                )}
+                <span class="recent-body">
+                  <span class="recent-title">{p.title}</span>
+                  <span class="recent-meta">
+                    {p.category && <em>{p.category}</em>}
+                    <time>{p.date}</time>
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  <section class="card widget">
+    <h3 class="widget__title">标签</h3>
+    <div class="tag-cloud-sm">
+      {tags.slice(0, 18).map((t) => (
+        <a class="tag" href={`/tags/${encodeURIComponent(t.name)}/`}>{t.name}</a>
+      ))}
+    </div>
+  </section>
+</aside>

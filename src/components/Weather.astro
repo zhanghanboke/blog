@@ -1,0 +1,107 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../site.config';
+
+const { enabled, city, lat, lon } = site.weather;
+---
+{
+  enabled && (
+    <section class="card widget weather" id="weather" data-city={city} data-lat={lat} data-lon={lon}>
+      <h3 class="widget__title">天气预报</h3>
+      <div class="weather__body">
+        <div class="weather__icon" id="weather-icon" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.6 1.6A3.7 3.7 0 0 0 6.5 19z" />
+          </svg>
+        </div>
+        <div class="weather__main">
+          <p class="weather__temp"><span id="weather-temp">--</span><sup>°</sup></p>
+          <p class="weather__desc">
+            <span id="weather-city">{city}</span>
+            <span class="weather__sep">·</span>
+            <span id="weather-text">加载中</span>
+          </p>
+        </div>
+      </div>
+      <p class="weather__aqi" id="weather-aqi" hidden></p>
+    </section>
+  )
+}
+
+<script is:inline>
+  (() => {
+    const root = document.getElementById('weather');
+    if (!root) return;
+    const tempEl = document.getElementById('weather-temp');
+    const textEl = document.getElementById('weather-text');
+    const aqiEl = document.getElementById('weather-aqi');
+    const lat = root.dataset.lat;
+    const lon = root.dataset.lon;
+    const KEY = '__weather_v1';
+    const TTL = 30 * 60 * 1000;
+
+    const label = (code) => {
+      if (code === 0) return '晴';
+      if (code <= 2) return '多云';
+      if (code === 3) return '阴';
+      if (code <= 48) return '雾';
+      if (code <= 57) return '毛毛雨';
+      if (code <= 67) return '雨';
+      if (code <= 77) return '雪';
+      if (code <= 82) return '阵雨';
+      if (code <= 86) return '阵雪';
+      return '雷雨';
+    };
+    const aqiText = (v) => {
+      if (v == null) return '';
+      if (v <= 50) return '优';
+      if (v <= 100) return '良';
+      if (v <= 150) return '轻度污染';
+      if (v <= 200) return '中度污染';
+      if (v <= 300) return '重度污染';
+      return '严重污染';
+    };
+
+    const paint = (data) => {
+      tempEl.textContent = Math.round(data.temp);
+      textEl.textContent = label(data.code);
+      if (data.aqi != null) {
+        aqiEl.hidden = false;
+        aqiEl.innerHTML = `<span>AQI: ${Math.round(data.aqi)}</span><span class="weather__aqi-tag">${aqiText(data.aqi)}</span>`;
+      }
+    };
+
+    try {
+      const cached = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (cached && Date.now() - cached.t < TTL) {
+        paint(cached.v);
+        return;
+      }
+    } catch {}
+
+    const get = (url) => fetch(url).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+
+    Promise.all([
+      get(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`
+      ),
+      get(
+        `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi&timezone=auto`
+      ).catch(() => null),
+    ])
+      .then(([w, a]) => {
+        const data = {
+          temp: w?.current?.temperature_2m ?? '--',
+          code: w?.current?.weather_code ?? 3,
+          aqi: a?.current?.us_aqi ?? null,
+        };
+        paint(data);
+        try {
+          localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), v: data }));
+        } catch {}
+      })
+      .catch(() => {
+        textEl.textContent = '天气暂不可用';
+      });
+  })();
+</script>

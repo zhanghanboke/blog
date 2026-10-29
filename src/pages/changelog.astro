@@ -1,0 +1,199 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const all = await getCollection('changelog');
+const sorted = all.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const rendered = await Promise.all(
+  sorted.map(async (e) => ({ ...e, Content: (await render(e)).Content }))
+);
+
+const typeLabel: Record<string, string> = { feat: '功能新增', perf: '功能优化', fix: '问题修复' };
+const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// 连线的依据：同一 area 的其他条目，最多取最近的 2 条
+const links = rendered.map((e, i) => {
+  const others = rendered
+    .map((x, j) => ({ j, area: x.data.area, dist: Math.abs(j - i) }))
+    .filter((x) => x.j !== i && x.area === e.data.area)
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 2);
+  return others.map((o) => ({ t: o.j, p: [o.area] }));
+});
+---
+<BaseLayout title="更新日志" description="这个博客的每一次改动">
+  <div class="container cl-wrap">
+    <header class="cl-hero">
+      <p class="eyebrow">CHANGELOG</p>
+      <h1>更新日志</h1>
+      <p class="cl-hero__sub">“这个博客的每一次改动”</p>
+    </header>
+
+    <div class="changelog" data-changelog>
+      <div class="cl-head">
+        <h2>更新日志</h2>
+        <span class="muted mono">{rendered.length} ENTRIES</span>
+      </div>
+
+      <svg class="changelog__wires" data-changelog-wires aria-hidden="true">
+        <defs>
+          <marker id="cl-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </marker>
+        </defs>
+      </svg>
+
+      <ol class="changelog__grid" data-changelog-grid>
+        {
+          rendered.map((e, i) => (
+            <li
+              class="cl-card"
+              data-changelog-card
+              data-index={i}
+              data-type={e.data.type}
+              data-links={JSON.stringify(links[i])}
+            >
+              <div class="cl-meta">
+                <span class="cl-type">{typeLabel[e.data.type]}</span>
+                <time datetime={e.data.date.toISOString()}>{fmt(e.data.date)}</time>
+              </div>
+              <h3>{e.data.title}</h3>
+              <div class="cl-body">
+                <e.Content />
+              </div>
+              <span class="cl-area">{e.data.area}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-changelog]');
+    if (!root) return;
+    const grid = root.querySelector('[data-changelog-grid]');
+    const svg = root.querySelector('[data-changelog-wires]');
+    const cards = [...grid.querySelectorAll('[data-changelog-card]')];
+    if (!grid || !svg || !cards.length) return;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const size = () => {
+      svg.setAttribute('viewBox', `0 0 ${root.scrollWidth} ${root.scrollHeight}`);
+      svg.setAttribute('width', root.scrollWidth);
+      svg.setAttribute('height', root.scrollHeight);
+    };
+
+    let cols = 3;
+    const layout = () => {
+      cols = Math.max(1, getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length);
+      requestAnimationFrame(drawRows);
+    };
+
+    const rowsOf = () => {
+      const rows = [];
+      for (let i = 0; i < cards.length; i += cols) rows.push(cards.slice(i, i + cols));
+      return rows;
+    };
+
+    const drawRows = () => {
+      size();
+      svg.querySelectorAll('[data-row-arrow]').forEach((n) => n.remove());
+      const rr = root.getBoundingClientRect();
+      const rows = rowsOf();
+      for (let r = 0; r < rows.length - 1; r++) {
+        const from = rows[r][rows[r].length - 1];
+        const to = rows[r + 1][0];
+        if (!from || !to) continue;
+        const fr = from.getBoundingClientRect();
+        const tr = to.getBoundingClientRect();
+        const y1 = fr.bottom - rr.top + 3;
+        const y2 = tr.top - rr.top - 3;
+        if (y2 <= y1) continue;
+        const midY = (y1 + y2) / 2;
+        const x1 = fr.left - rr.left + fr.width / 2;
+        const x2 = tr.left - rr.left + tr.width / 2;
+        const d = `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`;
+        const p = document.createElementNS(NS, 'path');
+        p.setAttribute('d', d);
+        p.setAttribute('class', 'cl-wire cl-wire--row');
+        p.setAttribute('marker-end', 'url(#cl-arrow)');
+        p.setAttribute('data-row-arrow', '');
+        svg.appendChild(p);
+      }
+    };
+
+    const clear = () => {
+      svg.querySelectorAll('[data-hover-wire]').forEach((n) => n.remove());
+      root.querySelectorAll('.cl-label').forEach((n) => n.remove());
+      root.classList.remove('is-hovering');
+      cards.forEach((c) => c.classList.remove('is-active', 'is-linked'));
+    };
+
+    const center = (card) => {
+      const r = card.getBoundingClientRect();
+      const rr = root.getBoundingClientRect();
+      return { x: r.left - rr.left + r.width / 2, y: r.top - rr.top + r.height / 2 };
+    };
+
+    const hover = (card) => {
+      clear();
+      size();
+      root.classList.add('is-hovering');
+      card.classList.add('is-active');
+      const from = center(card);
+      const list = JSON.parse(card.dataset.links || '[]');
+      list.forEach((link) => {
+        const target = root.querySelector(`[data-changelog-card][data-index="${link.t}"]`);
+        if (!target) return;
+        target.classList.add('is-linked');
+        const to = center(target);
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const off = Math.min(56, len * 0.12);
+        const cx = (from.x + to.x) / 2 - (dy / len) * off;
+        const cy = (from.y + to.y) / 2 + (dx / len) * off;
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`);
+        path.setAttribute('class', 'cl-wire cl-wire--hover');
+        path.setAttribute('data-hover-wire', '');
+        svg.appendChild(path);
+
+        if (!reduce) {
+          const L = path.getTotalLength();
+          path.style.strokeDasharray = `${L}`;
+          path.style.strokeDashoffset = `${L}`;
+          requestAnimationFrame(() => {
+            path.style.transition = 'stroke-dashoffset .55s ease';
+            path.style.strokeDashoffset = '0';
+          });
+        }
+
+        const label = document.createElement('span');
+        label.className = 'cl-label';
+        label.textContent = link.p.join('、');
+        label.style.left = `${(from.x + cx * 2 + to.x) / 4}px`;
+        label.style.top = `${(from.y + cy * 2 + to.y) / 4}px`;
+        root.appendChild(label);
+        requestAnimationFrame(() => label.classList.add('is-in'));
+      });
+    };
+
+    cards.forEach((card) => {
+      card.addEventListener('mouseenter', () => hover(card));
+      card.addEventListener('focusin', () => hover(card));
+    });
+    root.addEventListener('mouseleave', clear);
+    addEventListener('resize', () => {
+      clear();
+      layout();
+    });
+    addEventListener('load', layout);
+    layout();
+  })();
+</script>

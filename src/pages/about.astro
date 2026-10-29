@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import { site } from '../site.config';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../utils/posts';
+
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title="关于" description={`关于 ${site.name}`}>
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+    <main>
+      <div class="page-head">
+        <div><h1>关于</h1><p>{site.description}</p></div>
+        <span class="page-head__count">ABOUT</span>
+      </div>
+
+      <article class="card" style="padding:1.5rem">
+        <h2 style="margin-top:0">你好，我是 {site.name}</h2>
+        <p>{site.bio}</p>
+        <p class="muted">
+          这里记录技术笔记与生活片段。站点使用 Astro 构建，内容以 Markdown 维护，
+          所有数据都在你自己的仓库里。
+        </p>
+
+        <h3>联系方式</h3>
+        <ul>
+          <li>邮箱：<a href={`mailto:${site.email}`}>{site.email}</a></li>
+          {site.socials.map((s) => <li>{s.label}：<a href={s.href} target="_blank" rel="noopener noreferrer">{s.href}</a></li>)}
+        </ul>
+
+        <h3>这个站点</h3>
+        <ul>
+          <li>框架：Astro 7（静态输出）</li>
+          <li>内容：Markdown + 内容集合（content collections）</li>
+          <li>样式：手写 CSS，无 UI 框架依赖</li>
+          <li>文章数：{stats.posts} · 分类：{stats.categories} · 标签：{stats.tags}</li>
+        </ul>
+
+        <h3>待补充</h3>
+        <div class="empty" style="padding:2rem 1rem">
+          <strong>这里还是占位内容</strong>
+          <span>把 src/pages/about.astro 里的文字换成你自己的介绍</span>
+        </div>
+      </article>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,207 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, categoryHref, tagHref } from '../../utils/posts';
+import { site } from '../../site.config';
+import Comments from '../../components/Comments.astro';
+import PostEnhancer from '../../components/PostEnhancer.astro';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    props: { post, prev: posts[index + 1] ?? null, next: posts[index - 1] ?? null },
+  }));
+}
+
+const { post, prev, next } = Astro.props;
+const { Content, headings } = await render(post);
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = posts.slice(0, 5).map((p) => ({
+  title: p.data.title,
+  href: postHref(p),
+  date: formatDate(p.data.date),
+}));
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+// 系列：同 series 的文章按日期排列
+const seriesPosts = post.data.series
+  ? posts.filter((p) => p.data.series === post.data.series).sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf())
+  : [];
+
+// 相关文章：标签重合优先，其次同分类
+const related = posts
+  .filter((p) => p.id !== post.id)
+  .map((p) => {
+    const shared = p.data.tags.filter((t) => post.data.tags.includes(t)).length;
+    const sameCat = p.data.category === post.data.category ? 1 : 0;
+    return { p, score: shared * 2 + sameCat };
+  })
+  .filter((x) => x.score > 0)
+  .sort((a, b) => b.score - a.score || b.p.data.date.valueOf() - a.p.data.date.valueOf())
+  .slice(0, 3)
+  .map((x) => x.p);
+const plain = (post.body ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, '');
+const readingTime = Math.max(1, Math.round(plain.length / 400));
+const crumbs = post.data.category.split('/');
+---
+<BaseLayout title={post.data.title} description={post.data.description} bodyClass="page-posts">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+
+    <main>
+      <nav class="crumbs mono" aria-label="面包屑">
+        <a href="/">首页</a> / <a href="/posts/">文章</a> /
+        <a href={`${categoryHref(post.data.category)}`}>{post.data.category}</a>
+      </nav>
+
+      {
+        seriesPosts.length > 1 && (
+          <div class="series">
+            <div class="series__head">系列 · {post.data.series}</div>
+            <ol>
+              {seriesPosts.map((sp) => (
+                <li class={sp.id === post.id ? 'is-current' : ''}>
+                  {sp.id === post.id ? sp.data.title : <a href={postHref(sp)}>{sp.data.title}</a>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )
+      }
+
+      <article class="card" style="margin-top:.75rem">
+        <header class="post-header">
+          <div class="post-header__meta">
+            <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+            <span>·</span>
+            <span>{post.data.category}</span>
+            <span>·</span>
+            <span>约 {readingTime} 分钟</span>
+          </div>
+          <h1>{post.data.title}</h1>
+          {post.data.description && <p class="muted" style="margin:0">{post.data.description}</p>}
+          {
+            post.data.tags.length > 0 && (
+              <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.85rem">
+                {post.data.tags.map((t) => (
+                  <a class="tag" href={`${tagHref(t)}`}>#{t}</a>
+                ))}
+              </div>
+            )
+          }
+        </header>
+
+        <div class="post-body prose" id="post-body">
+          <Content />
+        </div>
+      </article>
+
+      <nav class="post-nav">
+        {
+          prev ? (
+            <a class="card" href={postHref(prev)}>
+              <span>← 上一篇</span>
+              <strong>{prev.data.title}</strong>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next ? (
+            <a class="card is-next" href={postHref(next)}>
+              <span>下一篇 →</span>
+              <strong>{next.data.title}</strong>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+      </nav>
+
+      {
+        related.length > 0 && (
+          <section class="related">
+            <h2 class="section-title">相关文章 <span class="muted">RELATED</span></h2>
+            <div class="related__list">
+              {related.map((rp) => (
+                <div class="related__item">
+                  <a href={postHref(rp)}>
+                    <strong>{rp.data.title}</strong>
+                    <span>{formatDate(rp.data.date)}</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      <Comments />
+    </main>
+
+    {
+      site.features.toc && (
+        <aside class="card toc" id="toc" hidden>
+          <p class="toc__title">目录</p>
+          <ul class="toc__list" id="toc-list"></ul>
+        </aside>
+      )
+    }
+  </div>
+  <PostEnhancer />
+</BaseLayout>
+
+<style>
+  .crumbs {
+    color: var(--muted);
+    font-size: 0.72rem;
+  }
+  .crumbs a:hover {
+    color: var(--fg);
+    text-decoration: underline;
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const toc = document.getElementById('toc');
+    const list = document.getElementById('toc-list');
+    const body = document.getElementById('post-body');
+    if (!toc || !list || !body) return;
+    const heads = [...body.querySelectorAll('h2, h3')].filter((h) => h.id);
+    if (!heads.length) return;
+    list.innerHTML = heads
+      .map(
+        (h) =>
+          `<li class="${h.tagName === 'H3' ? 'depth-3' : ''}"><a href="#${encodeURIComponent(h.id)}">${h.textContent.replace('#', '').trim()}</a></li>`
+      )
+      .join('');
+    toc.hidden = false;
+  })();
+
+  const links = [...document.querySelectorAll('.toc__list a')];
+  const targets = links
+    .map((a) => document.getElementById(decodeURIComponent(a.getAttribute('href')).slice(1)))
+    .filter(Boolean);
+  if (targets.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((l) => l.classList.remove('is-active'));
+          const active = links.find((l) => decodeURIComponent(l.getAttribute('href')) === '#' + encodeURIComponent(e.target.id));
+          active?.classList.add('is-active');
+        }
+      },
+      { rootMargin: '-80px 0px -70% 0px' }
+    );
+    targets.forEach((t) => io.observe(t));
+  }
+</script>

@@ -1,0 +1,124 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import PostCard from '../components/PostCard.astro';
+import { site } from '../site.config';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, categoryHref, tagHref, toRecent } from '../utils/posts';
+
+const posts = await getPosts();
+const latest = posts.slice(0, 6);
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout bodyClass="home page-flow">
+  <section class="hero" id="hero">
+    <div class="hero__slides" aria-hidden="true">
+      <img class="hero__slide is-active" src="/images/banner/01.webp" alt="" fetchpriority="high" />
+      <img class="hero__slide" src="/images/banner/02.webp" alt="" loading="lazy" />
+      <img class="hero__slide" src="/images/banner/03.webp" alt="" loading="lazy" />
+    </div>
+    <div class="hero__scrim"></div>
+    <div class="hero__corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <div class="container hero__inner">
+      <span class="hero__eyebrow">Personal blog · Est. {new Date(site.startDate).getFullYear()}</span>
+      <h1 class="hero__title">{site.name}<em>.</em></h1>
+      <p class="hero__sub">{site.description}</p>
+      <p class="hero__desc">{site.bio}</p>
+      <div class="hero__meta">
+        <span>{stats.posts} 篇文章</span>
+        <span>{stats.categories} 个分类</span>
+        <span>{stats.tags} 个标签</span>
+        <span>{site.email}</span>
+      </div>
+    </div>
+
+    <div class="hero__hud">
+      <span class="hero__count mono" id="hero-count">01 / 03</span>
+      <div class="hero__dots" role="tablist" aria-label="横幅切换">
+        <button class="hero__dot is-active" type="button" data-slide="0" aria-label="第 1 张"></button>
+        <button class="hero__dot" type="button" data-slide="1" aria-label="第 2 张"></button>
+        <button class="hero__dot" type="button" data-slide="2" aria-label="第 3 张"></button>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const slides = [...document.querySelectorAll('.hero__slide')];
+      const dots = [...document.querySelectorAll('.hero__dot')];
+      const count = document.getElementById('hero-count');
+      if (slides.length < 2) return;
+      let i = 0, timer;
+      const go = (n) => {
+        i = (n + slides.length) % slides.length;
+        slides.forEach((s, k) => s.classList.toggle('is-active', k === i));
+        dots.forEach((d, k) => d.classList.toggle('is-active', k === i));
+        if (count) count.textContent = `${String(i + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+      };
+      const start = () => { clearInterval(timer); timer = setInterval(() => go(i + 1), 6000); };
+      dots.forEach((d) => d.addEventListener('click', () => { go(Number(d.dataset.slide)); start(); }));
+      const q = Number(new URLSearchParams(location.search).get('slide'));
+      if (!Number.isNaN(q) && q > 0) go(q);
+      start();
+    })();
+  </script>
+
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+
+    <main>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">LATEST POSTS</p>
+          <h1>最新文章</h1>
+        </div>
+        <a class="page-head__count" href="/posts/">查看全部 {posts.length} 篇 →</a>
+      </div>
+
+      {
+        latest.length === 0 ? (
+          <div class="empty">
+            <strong>还没有文章</strong>
+            <span>把 Markdown 放进 src/content/posts 即可自动生成页面</span>
+          </div>
+        ) : (
+          <div class="post-list">
+            {latest.map((p) => (
+              <PostCard
+                href={postHref(p)}
+                title={p.data.title}
+                date={formatDate(p.data.date)}
+                category={p.data.category}
+                description={p.data.description}
+                tags={p.data.tags}
+                cover={p.data.cover}
+              />
+            ))}
+          </div>
+        )
+      }
+
+      <h2 class="section-title">分类 <span class="muted">{categories.length}</span></h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        {categories.map((c) => (
+          <a class="tag" href={`${categoryHref(c.name)}`} style="padding:.35rem .75rem;font-size:.78rem">
+            {c.name} <span class="muted">{c.count}</span>
+          </a>
+        ))}
+      </div>
+
+      <h2 class="section-title">标签 <span class="muted">{tags.length}</span></h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+        {tags.slice(0, 18).map((t) => (
+          <a class="tag" href={`${tagHref(t.name)}`}>{t.name} {t.count}</a>
+        ))}
+      </div>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>

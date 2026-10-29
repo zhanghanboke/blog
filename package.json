@@ -1,0 +1,16 @@
+{
+  "name": "zhanghan-blog-astro",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "migrate": "python scripts/migrate.py",
+    "clean": "rm -rf dist .astro"
+  },
+  "dependencies": {
+    "astro": "^5.18.2"
+  }
+}

@@ -1,0 +1,85 @@
+---
+// 阅读体验增强：代码复制 / 图片灯箱 / 阅读进度 / 回到顶部
+---
+<div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+
+<button class="to-top" id="to-top" type="button" aria-label="回到顶部" hidden>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5M5 12l7-7 7 7" />
+  </svg>
+</button>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" type="button" aria-label="关闭">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+  <img id="lightbox-img" alt="" />
+  <p class="lightbox__hint">点击空白处或按 Esc 关闭</p>
+</div>
+
+<script is:inline>
+  (() => {
+    const body = document.getElementById('post-body');
+    if (!body) return;
+
+    // 1. 代码复制
+    body.querySelectorAll('pre').forEach((pre) => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.textContent = '复制';
+      btn.addEventListener('click', async () => {
+        const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = '已复制';
+        } catch {
+          btn.textContent = '复制失败';
+        }
+        setTimeout(() => (btn.textContent = '复制'), 1600);
+      });
+      pre.appendChild(btn);
+    });
+
+    // 2. 图片灯箱
+    const box = document.getElementById('lightbox');
+    const boxImg = document.getElementById('lightbox-img');
+    body.querySelectorAll('img').forEach((img) => {
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', () => {
+        if (!box || !boxImg) return;
+        boxImg.src = img.currentSrc || img.src;
+        boxImg.alt = img.alt || '';
+        box.hidden = false;
+        document.body.style.overflow = 'hidden';
+      });
+    });
+    const close = () => {
+      if (!box) return;
+      box.hidden = true;
+      document.body.style.overflow = '';
+    };
+    box?.addEventListener('click', (e) => {
+      if (e.target === box) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && box && !box.hidden) close();
+    });
+
+    // 3. 阅读进度
+    const bar = document.getElementById('reading-progress');
+    const top = document.getElementById('to-top');
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const p = max > 0 ? Math.min(1, scrollY / max) : 0;
+      if (bar) bar.style.transform = `scaleX(${p})`;
+      if (top) top.hidden = scrollY < 600;
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    top?.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
+  })();
+</script>

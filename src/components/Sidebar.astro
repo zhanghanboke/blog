@@ -1,0 +1,60 @@
+---
+import Icon from './Icon.astro';
+import Weather from './Weather.astro';
+import Calendar from './Calendar.astro';
+import { getPosts, postHref } from '../utils/posts';
+import { site } from '../site.config';
+
+interface Props {
+  recent: { title: string; href: string; date: string }[];
+  stats: { posts: number; categories: number; tags: number };
+}
+const { recent, stats } = Astro.props;
+const posts = await getPosts();
+const postDays = posts.map((p) => {
+  const d = p.data.date;
+  return {
+    d: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+    t: p.data.title,
+    u: postHref(p),
+  };
+});
+const days = Math.max(
+  1,
+  Math.floor((Date.now() - new Date(site.startDate + 'T00:00:00').getTime()) / 86400000) + 1
+);
+---
+<aside class="sidebar">
+  <div class="card profile">
+    <img class="profile__cover" src={site.banner} alt="" />
+    <div class="profile__body">
+      <img class="profile__avatar" src={site.avatar} alt={site.name} />
+      <h2 class="profile__name">{site.name}</h2>
+      <p class="profile__bio">{site.bio}</p>
+      <div class="profile__socials">
+        {
+          site.socials.map((s) => (
+            <a href={s.href} aria-label={s.label} title={s.label} target="_blank" rel="noopener noreferrer">
+              <Icon name={s.icon} size={16} />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <Weather />
+  <Calendar dates={postDays} />
+</aside>
+
+<script is:inline>
+  (() => {
+    const el = document.getElementById('uptime-days');
+    if (!el) return;
+    const since = new Date(el.dataset.since + 'T00:00:00');
+    if (Number.isNaN(since.getTime())) return;
+    const now = new Date();
+    const days = Math.max(1, Math.floor((now - since) / 86400000) + 1);
+    el.textContent = days + ' 天';
+  })();
+</script>

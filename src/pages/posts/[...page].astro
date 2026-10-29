@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, toRecent } from '../../utils/posts';
+
+export async function getStaticPaths({ paginate }: any) {
+  const posts = await getPosts();
+  return paginate(posts, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+const posts = page.data;
+const all = await getPosts();
+const categories = collectCategories(all);
+const tags = collectTags(all);
+const recent = toRecent(all);
+const stats = { posts: all.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title={page.currentPage > 1 ? `文章 · 第 ${page.currentPage} 页` : '文章'} bodyClass="page-posts">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+
+    <main>
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">ARTICLE INDEX</p>
+          <h1>全部文章</h1>
+          <p>共 {page.total} 篇 · 第 {page.currentPage} / {page.lastPage} 页</p>
+        </div>
+        <span class="page-head__count">{String(page.currentPage).padStart(2, '0')} / {String(page.lastPage).padStart(2, '0')}</span>
+      </div>
+
+      <div class="post-list">
+        {posts.map((p) => (
+          <PostCard
+            href={postHref(p)}
+            title={p.data.title}
+            date={formatDate(p.data.date)}
+            category={p.data.category}
+            description={p.data.description}
+            tags={p.data.tags}
+            cover={p.data.cover}
+          />
+        ))}
+      </div>
+
+      {
+        page.lastPage > 1 && (
+          <nav class="pagination" aria-label="分页">
+            {page.url.prev ? <a href={page.url.prev}>上一页</a> : <span class="is-disabled">上一页</span>}
+            {Array.from({ length: page.lastPage }, (_, i) => i + 1).map((n) => {
+              const href = n === 1 ? '/posts/' : `/posts/${n}/`;
+              return n === page.currentPage ? (
+                <span class="is-current">{n}</span>
+              ) : (
+                <a href={href}>{n}</a>
+              );
+            })}
+            {page.url.next ? <a href={page.url.next}>下一页</a> : <span class="is-disabled">下一页</span>}
+          </nav>
+        )
+      }
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>

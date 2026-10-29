@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightSidebar from '../components/RightSidebar.astro';
+import { getCollection, render } from 'astro:content';
+import { site } from '../site.config';
+import { getPosts, collectCategories, collectTags, toRecent } from '../utils/posts';
+
+// 添加说说：在 src/content/moments/ 新建 .md 文件即可，格式：
+// ---
+// date: 2026-10-29 15:30
+// mood: 开心
+// ---
+// 正文（支持 Markdown，可贴图）
+
+const moments = (await getCollection('moments', (m) => !m.data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const rendered = await Promise.all(
+  moments.map(async (m) => ({ entry: m, ...(await render(m)) })),
+);
+
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+
+const { serverURL, lang, login, requiredMeta } = site.comments;
+const commentsOn = site.features.comments && serverURL;
+
+const fmtDate = (d: Date) =>
+  `${d.getFullYear()} 年 ${String(d.getMonth() + 1).padStart(2, '0')} 月 ${String(d.getDate()).padStart(2, '0')} 日`;
+const fmtTime = (d: Date) =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+---
+<BaseLayout title="说说" description="日常的只言片语">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+
+    <main>
+      <div class="page-head">
+        <div><h1>说说</h1><p>日常的只言片语，按时间倒序</p></div>
+        <span class="page-head__count">{moments.length} MOMENTS</span>
+      </div>
+
+      {
+        rendered.length === 0 ? (
+          <div class="empty">
+            <strong>还没有说说</strong>
+            <span>在 src/content/moments/ 里新建 Markdown 文件即可发布</span>
+          </div>
+        ) : (
+          <div class="moments">
+            {rendered.map(({ entry, Content }) => (
+              <article class="moment" id={`m-${entry.id.replace(/[^\w-]/g, '')}`}>
+                <div class="moment__dot" aria-hidden="true"></div>
+                <div class="card moment__card">
+                  <header class="moment__head">
+                    <img class="moment__avatar" src={site.avatar} alt={site.name} />
+                    <div class="moment__meta">
+                      <strong>{site.name}</strong>
+                      <span class="mono">
+                        {fmtDate(entry.data.date)} · {fmtTime(entry.data.date)}
+                        {entry.data.mood && <em class="moment__mood">{entry.data.mood}</em>}
+                      </span>
+                    </div>
+                  </header>
+                  <div class="moment__body prose">
+                    <Content />
+                  </div>
+                  <footer class="moment__foot">
+                    <span class="moment__path mono">#{entry.id.replace(/\.md$/, '')}</span>
+                    {commentsOn ? (
+                      <button
+                        class="moment__comment-btn"
+                        data-path={`/moments/#${entry.id.replace(/\.md$/, '')}`}
+                        aria-expanded="false"
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span class="moment__comment-label">评论</span>
+                      </button>
+                    ) : (
+                      <span class="moment__comment-off" title="在 src/site.config.ts 中配置 Waline 后开启">
+                        评论未开启
+                      </span>
+                    )}
+                  </footer>
+                  <div class="moment__comments" hidden></div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )
+      }
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+
+  {commentsOn && <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />}
+  {
+    commentsOn && (
+      <script is:inline define:vars={{ serverURL, lang, login, requiredMeta }}>
+        document.querySelectorAll('.moment__comment-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const card = btn.closest('.moment__card');
+            const box = card.querySelector('.moment__comments');
+            if (box.dataset.loaded) {
+              box.hidden = !box.hidden;
+              btn.setAttribute('aria-expanded', String(!box.hidden));
+              return;
+            }
+            btn.querySelector('.moment__comment-label').textContent = '加载中…';
+            const { init } = await import('https://unpkg.com/@waline/client@v3/dist/waline.js');
+            init({
+              el: box,
+              serverURL,
+              lang,
+              login,
+              requiredMeta,
+              path: btn.dataset.path,
+              dark: 'html.dark',
+              reaction: false,
+            });
+            box.dataset.loaded = '1';
+            box.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+            btn.querySelector('.moment__comment-label').textContent = '收起评论';
+          });
+        });
+      </script>
+    )
+  }
+</BaseLayout>

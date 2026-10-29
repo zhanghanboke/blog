@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
+import { getPosts, postHref, formatDate, collectCategories, collectTags, categoryHref, toRecent } from '../../utils/posts';
+
+const posts = await getPosts();
+const categories = collectCategories(posts);
+const tags = collectTags(posts);
+const recent = toRecent(posts);
+const stats = { posts: posts.length, categories: categories.length, tags: tags.length };
+---
+<BaseLayout title="分类" bodyClass="page-flow">
+  <div class="container layout">
+    <Sidebar recent={recent} stats={stats} />
+    <main>
+      <div class="page-head">
+        <div><h1>分类</h1><p>共 {categories.length} 个分类</p></div>
+        <a class="page-head__count" href="/tags/">标签 →</a>
+      </div>
+
+      <div class="cat-list">
+        {
+          categories.map((c) => (
+            <a class="card cat-row" href={`${categoryHref(c.name)}`}>
+              <span class="cat-row__name">{c.name}</span>
+              <span class="mono muted">{c.count} 篇</span>
+            </a>
+          ))
+        }
+      </div>
+    </main>
+
+    <RightSidebar recent={recent} stats={stats} tags={tags} />
+  </div>
+</BaseLayout>
+
+<style>
+  .cat-list {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    border-width: 2px;
+  }
+  .cat-row:hover {
+    background: var(--code-bg);
+  }
+  .cat-row__name {
+    font-weight: 600;
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+interface Props {
+  dates: { d: string; t: string; u: string }[];
+}
+const { dates } = Astro.props;
+---
+<section class="card widget calendar" id="calendar" data-days={JSON.stringify(dates)}>
+  <h3 class="widget__title">日历</h3>
+  <div class="calendar__head">
+    <button class="calendar__nav" id="cal-prev" type="button" aria-label="上个月">‹</button>
+    <strong id="cal-title">—</strong>
+    <button class="calendar__nav" id="cal-next" type="button" aria-label="下个月">›</button>
+  </div>
+  <div class="calendar__week" aria-hidden="true">
+    <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+  </div>
+  <div class="calendar__grid" id="cal-grid"></div>
+  <div class="calendar__foot" id="cal-foot"></div>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.getElementById('calendar');
+    if (!root) return;
+    const gridEl = document.getElementById('cal-grid');
+    const titleEl = document.getElementById('cal-title');
+    const footEl = document.getElementById('cal-foot');
+    let days = [];
+    try {
+      days = JSON.parse(root.dataset.days || '[]');
+    } catch {}
+
+    const byDate = new Map();
+    days.forEach((p) => {
+      if (!byDate.has(p.d)) byDate.set(p.d, []);
+      byDate.get(p.d).push(p);
+    });
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+    const today = new Date();
+    const todayIso = iso(today.getFullYear(), today.getMonth(), today.getDate());
+
+    let view = { y: today.getFullYear(), m: today.getMonth() };
+    let selected = todayIso;
+
+    const foot = (key) => {
+      const list = byDate.get(key);
+      if (list && list.length) {
+        const p = list[0];
+        footEl.innerHTML = `<a href="${p.u}">${p.t}</a><time>${key.slice(5).replace('-', '-')}</time>`;
+      } else {
+        footEl.innerHTML = `<span class="calendar__empty">这天没有更新</span><time>${key.slice(5)}</time>`;
+      }
+    };
+
+    const render = () => {
+      const { y, m } = view;
+      titleEl.textContent = `${y}年${m + 1}月`;
+      const first = new Date(y, m, 1).getDay();
+      const total = new Date(y, m + 1, 0).getDate();
+      const cells = [];
+      for (let i = 0; i < first; i++) cells.push('<span class="calendar__blank"></span>');
+      for (let d = 1; d <= total; d++) {
+        const key = iso(y, m, d);
+        const cls = ['calendar__day'];
+        if (key === todayIso) cls.push('is-today');
+        if (key === selected) cls.push('is-selected');
+        if (byDate.has(key)) cls.push('has-post');
+        cells.push(`<button class="${cls.join(' ')}" type="button" data-day="${key}">${d}</button>`);
+      }
+      gridEl.innerHTML = cells.join('');
+      foot(selected);
+    };
+
+    gridEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-day]');
+      if (!btn) return;
+      selected = btn.dataset.day;
+      render();
+    });
+
+    document.getElementById('cal-prev')?.addEventListener('click', () => {
+      view = view.m === 0 ? { y: view.y - 1, m: 11 } : { y: view.y, m: view.m - 1 };
+      render();
+    });
+    document.getElementById('cal-next')?.addEventListener('click', () => {
+      view = view.m === 11 ? { y: view.y + 1, m: 0 } : { y: view.y, m: view.m + 1 };
+      render();
+    });
+
+    render();
+  })();
+</script>
