@@ -56,20 +56,18 @@ const pageTitle = title ? `${title} · ${site.title}` : site.title;
     </script>
     <script is:inline>
       // 侧栏滚动模式（复刻源站 checkSidebarMode，并加高侧栏修正）：
-      // 1. 文章页顶吸（bodyClass="page-posts" 控制）
-      // 2. 标记了 page-flow 的页面（主页/归档/分类等长页）保持自然滚动，
+      // 1. 标记了 page-flow 的页面（主页/归档/分类等长页）保持自然滚动，
       //    不做吸附——这类页面底吸会长时间定格在「两端被裁」的状态
-      // 3. 其余长页（主内容超过视口）底吸：JS 加 .is-long → 吸附视口底部
-      // 4. 侧栏自身高于视口时（is-tall）：纯底吸会永久裁掉顶部内容，
+      // 2. 其余长页（主内容超过视口）底吸：JS 加 .is-long → 吸附视口底部
+      // 3. 侧栏自身高于视口时（is-tall）：纯底吸会永久裁掉顶部内容，
       //    改为 top 偏移粘滞——先随页面自然滚完，底边触到视口底后再钉住
       //    --pin-top 用 ResizeObserver 随卡片高度变化实时修正
       (() => {
         const check = () => {
           const main = document.querySelector('.layout > main');
           if (!main) return;
-          const isPosts = document.body.classList.contains('page-posts');
           const isFlow = document.body.classList.contains('page-flow');
-          const isLong = !isPosts && !isFlow && main.scrollHeight > window.innerHeight;
+          const isLong = !isFlow && main.scrollHeight > window.innerHeight;
           document.querySelectorAll('.layout > .sidebar, .layout > .rightbar').forEach((el) => {
             el.classList.toggle('is-long', isLong);
             const tall = isLong && el.offsetHeight > window.innerHeight;

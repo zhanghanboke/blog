@@ -51,7 +51,7 @@ const plain = (post.body ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, '');
 const readingTime = Math.max(1, Math.round(plain.length / 400));
 const crumbs = post.data.category.split('/');
 ---
-<BaseLayout title={post.data.title} description={post.data.description} bodyClass="page-posts">
+<BaseLayout title={post.data.title} description={post.data.description}>
   <div class={site.features.toc ? 'container layout' : 'container layout layout--two'}>
     <Sidebar recent={recent} stats={stats} />
 

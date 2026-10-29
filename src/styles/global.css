@@ -662,7 +662,7 @@ body.home .icon-btn:hover {
    侧边栏 —— 滚动模式（复刻源站 checkSidebarMode 机制）：
    1. 短页面 / page-flow 页面（主页、归档、分类）：不做 sticky，随页面自然滚
    2. 其余长页面：JS 检测主内容超高后加 .is-long → 底吸视口底部
-   3. 文章页：bodyClass="page-posts" → 顶吸 + 内部滚动
+   文章页也走默认模式（和说说页一致），侧栏不开内部滚动条。
    ========================================================================== */
 .sidebar {
   display: flex;
@@ -687,19 +687,6 @@ body.home .icon-btn:hover {
     align-self: start;
     bottom: auto;
     top: var(--pin-top, 0);
-  }
-
-  /* 文章类页面顶吸（同源站 is-posts-page 行为）：
-     阅读场景侧栏应跟手出现在视口顶部而非底部 */
-  .page-posts .sidebar,
-  .page-posts .rightbar {
-    align-self: start;
-    position: sticky;
-    top: 5rem;
-    bottom: auto;
-    max-height: calc(100vh - 6rem);
-    overflow-y: auto;
-    padding-bottom: 9rem;
   }
 }
 
